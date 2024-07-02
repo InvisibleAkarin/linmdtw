@@ -35,11 +35,11 @@ test_script:
   - pytest .
 
 after_test:
-  # If tests are successful, create binary packages for the project.
+  # 如果测试成功，为项目创建二进制包。
   - python setup.py bdist_wheel"
   - python setup.py bdist_wininst"
   - ps: "ls dist"
 
 artifacts:
-  # Archive the generated packages in the ci.appveyor.com build report.
+  # 在 ci.appveyor.com 构建报告中存档生成的包。
   - path: dist\*

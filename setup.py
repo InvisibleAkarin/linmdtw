@@ -5,16 +5,16 @@ import platform
 from setuptools import setup
 from setuptools.extension import Extension
 
-# Ensure Cython is installed before we even attempt to install linmdtw
+# 确保在尝试安装 linmdtw 之前已安装 Cython
 try:
     from Cython.Build import cythonize
     from Cython.Distutils import build_ext
 except:
-    print("You don't seem to have Cython installed. Please get a")
-    print("copy from www.cython.org or install it with `pip install Cython`")
+    print("你似乎没有安装 Cython。请从 www.cython.org ")
+    print("获取副本或使用 `pip install Cython` 安装它")
     sys.exit(1)
 
-## Get version information from _version.py
+## 从 _version.py 获取版本信息
 import re
 VERSIONFILE="linmdtw/_version.py"
 verstrline = open(VERSIONFILE, "rt").read()
@@ -23,23 +23,23 @@ mo = re.search(VSRE, verstrline, re.M)
 if mo:
     verstr = mo.group(1)
 else:
-    raise RuntimeError("Unable to find version string in %s." % (VERSIONFILE,))
+    raise RuntimeError("无法在 %s 中找到版本字符串。" % (VERSIONFILE,))
 
-# Use README.md as the package long description  
+# 使用 README.md 作为包的长描述
 with open('README.md') as f:
     long_description = f.read()
 
 class CustomBuildExtCommand(build_ext):
-    """ This extension command lets us not require numpy be installed before running pip installing
-        build_ext command for use when numpy headers are needed.
+    """ 这个扩展命令让我们在运行 pip 安装之前不需要安装 numpy
+        build_ext 命令用于需要 numpy 头文件时。
     """
 
     def run(self):
-        # Import numpy here, only when headers are needed
+        # 仅在需要头文件时在此处导入 numpy
         import numpy
-        # Add numpy headers to include_dirs
+        # 将 numpy 头文件添加到 include_dirs
         self.include_dirs.append(numpy.get_include())
-        # Call original build_ext command
+        # 调用原始的 build_ext 命令
         build_ext.run(self)
 
 extra_compile_args = []

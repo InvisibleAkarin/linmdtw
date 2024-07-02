@@ -1,15 +1,15 @@
 # 0.1.7
-    - Fixed a bug that caused some slight numerical errors and crashing on boundary cases
-    - Changed API to be consistent with the fastdtw package, so all alignment methods return (cost, path) now
+    - 修复了一个导致一些轻微数值误差和边界情况崩溃的错误
+    - 更改了 API 以与 fastdtw 包保持一致，因此所有对齐方法现在返回 (cost, path)
 
 # 0.1.6
-    - Adding constrained DTW with a Sakoe-Chiba band
+    - 添加了带有 Sakoe-Chiba 带的约束 DTW
 
 # 0.1.5
-    - Fixing bug in audio alignment with time stretching
+    - 修复了音频对齐中的时间拉伸错误
 
 # 0.1.3
-    - Adding MANIFEST.in file so that all of the source files are included when building from source
+    - 添加了 MANIFEST.in 文件，以便从源代码构建时包含所有源文件
 
 # 0.1.2
-    - Adding README and finalizing structure for docs
+    - 添加了 README 并完成了文档结构

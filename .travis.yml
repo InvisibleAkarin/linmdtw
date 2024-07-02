@@ -22,10 +22,10 @@ matrix:
       env: PYTHON_VERSION="3.7"
 
 before_install:
-    # Tricks to avoid matplotlib error about X11:
-    # 'no display name and no $DISPLAY environment variable'
+    # 避免 matplotlib 关于 X11 的错误的技巧：
+    # '没有显示名称和没有 $DISPLAY 环境变量'
 
-    # enable gui, see https://docs.travis-ci.com/user/gui-and-headless-browsers
+    # 启用 GUI，参见 https://docs.travis-ci.com/user/gui-and-headless-browsers
     - if [ "$TRAVIS_OS_NAME" == "linux" ]; then
             export DISPLAY=:99.0;
             sh -e /etc/init.d/xvfb start;
@@ -40,17 +40,17 @@ services:
 
 install: source ci_scripts/install.sh
 
-# Installing matplotlib is long processes. Using a cache allows
-# to fasten the tests by reducing drastically the install time.
+# 安装 matplotlib 是一个漫长的过程。使用缓存可以
+# 通过大幅减少安装时间来加快测试速度。
 cache:
     directories:
-        # Cache for pip, mostly to speed up matplotlib install
+        # pip 的缓存，主要是为了加快 matplotlib 的安装
         - $HOME/.cache/pip
 
 script:
   - pytest --cov linmdtw
 
-# Upload the code coverage report
+# 上传代码覆盖率报告
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 

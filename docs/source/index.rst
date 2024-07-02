@@ -1,7 +1,5 @@
-.. linmdtw documentation master file, created by
-   sphinx-quickstart on Sun Aug  2 21:07:06 2020.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
+.. linmdtw 文档主文件，由 sphinx-quickstart 创建于 2020 年 8 月 2 日星期日 21:07:06。
+   你可以完全根据自己的喜好调整此文件，但至少应包含根 `toctree` 指令。
 
 Welcome to linmdtw's documentation!
 ===================================

@@ -16,13 +16,12 @@ def my_hook(d):
 
 def download_corpus(foldername):
     """
-    Download a corpus of audio from youtube 
-    Parameters
+    从 YouTube 下载音频语料库
+    参数
     ----------
     foldername: string
-        Path to a folder to which to download audio.  It must 
-        contain a file "info.json," with URLs, starting, and 
-        stopping times of all pieces
+        下载音频的文件夹路径。它必须包含一个 "info.json" 文件，
+        其中包含所有片段的 URL、开始时间和结束时间
     """
     infofile = "{}/info.json".format(foldername)
     pieces = json.load(open(infofile, "r"))
@@ -30,7 +29,7 @@ def download_corpus(foldername):
         for j, piece in enumerate(pair):
             path = "{}/{}_{}.mp3".format(foldername, i, j)
             if os.path.exists(path):
-                print("Already downloaded ", path)
+                print("已经下载 ", path)
                 continue
             url = piece['url']
 
@@ -50,7 +49,7 @@ def download_corpus(foldername):
                 with youtube_dl.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
             except:
-                warnings.warn("Error downloading {}".format(path))
+                warnings.warn("下载出错 {}".format(path))
                 continue
             
             command = ["ffmpeg", "-i", "temp.mp3"]
@@ -74,36 +73,33 @@ def download_corpus(foldername):
 
 def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_stretch=False, delta=30, do_stretch_approx=False):
     """
-    Align two pieces with various techniques and save the results to .mat
-    files
-    Parameters
+    使用各种技术对齐两段音频，并将结果保存到 .mat 文件中
+    参数
     ----------
     filename1: string
-        Path to first audio file
+        第一个音频文件的路径
     filename2: string
-        Path to second audio file
+        第二个音频文件的路径
     sr: int
-        Sample rate to use on both audio files
+        两个音频文件使用的采样率
     hop_length: int
-        Hop length between windows for features
+        特征窗口之间的跳跃长度
     do_mfcc: boolean
-        If true, use mfcc_mod features.  Otherwise, use DLNC0 features
+        如果为真，使用 mfcc_mod 特征。否则，使用 DLNC0 特征
     compare_cpu: boolean
-        If true, compare to brute force CPU DTW
+        如果为真，与暴力 CPU DTW 进行比较
     do_stretch: boolean
-        If true, stretch the audio according to the GPU warping path, and save
-        to a file
+        如果为真，根据 GPU 扭曲路径拉伸音频，并保存到文件
     delta: int
-        The radius to use for fastdtw
+        用于 fastdtw 的半径
     do_stretch_approx: boolean
-        If true, stretch the audio according to approximate warping paths from
-        fastdtw and mrmsdtw
+        如果为真，根据 fastdtw 和 mrmsdtw 的近似扭曲路径拉伸音频
     """
     if not os.path.exists(filename1):
-        warnings.warn("Skipping ", filename1)
+        warnings.warn("跳过 ", filename1)
         return
     if not os.path.exists(filename2):
-        warnings.warn("Skipping ", filename2)
+        warnings.warn("跳过 ", filename2)
         return
     prefix = "mfcc"
     if not do_mfcc:
@@ -111,7 +107,7 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
     pathfilename = "{}_{}_path.mat".format(filename1, prefix)
     approx_pathfilename = "{}_{}_approx_path.mat".format(filename1, prefix)
     if os.path.exists(pathfilename) and os.path.exists(approx_pathfilename):
-        print("Already computed all alignments on ", filename1, filename2)
+        print("已经计算了所有对齐 ", filename1, filename2)
         return
     
     x1, sr = linmdtw.load_audio(filename1, sr)
@@ -127,22 +123,22 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
     X2 = np.ascontiguousarray(X2, dtype=np.float32)
 
     if os.path.exists(pathfilename):
-        print("Already computed full", prefix, "alignments on", filename1, filename2)
+        print("已经计算了所有完整的", prefix, "对齐", filename1, filename2)
     else:
         tic = time.time()
         metadata = {'totalCells':0, 'M':X1.shape[0], 'N':X2.shape[0], 'timeStart':tic}
-        print("Starting GPU Alignment...")
+        print("开始 GPU 对齐...")
         path_gpu = linmdtw.linmdtw(X1, X2, do_gpu=True, metadata=metadata)
         metadata['time_gpu'] = time.time() - metadata['timeStart']
-        print("Time GPU", metadata['time_gpu'])
+        print("GPU 时间", metadata['time_gpu'])
         path_gpu = np.array(path_gpu)
         paths = {"path_gpu":path_gpu}
         if compare_cpu:
             tic = time.time()
-            print("Doing CPU alignment...")
+            print("进行 CPU 对齐...")
             path_cpu = linmdtw.dtw_brute_backtrace(X1, X2)
             elapsed = time.time() - tic
-            print("Time CPU", elapsed)
+            print("CPU 时间", elapsed)
             metadata["time_cpu"] = elapsed
             path_cpu = np.array(path_cpu)
             paths["path_cpu"] = path_cpu
@@ -157,32 +153,32 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
         sio.savemat(pathfilename, paths)
 
         if do_stretch:
-            print("Stretching...")
+            print("拉伸中...")
             x = linmdtw.stretch_audio(x1, x2, sr, path_gpu_arr, hop_length)
             linmdtw.audiotools.save_audio(x, sr, "{}_{}_sync".format(filename1, prefix))
-            print("Finished stretching")
+            print("拉伸完成")
 
-    # Do approximate alignments
+    # 进行近似对齐
     if os.path.exists(approx_pathfilename):
-        print("Already computed approximate", prefix, "alignments for", filename1, filename2)
+        print("已经计算了所有近似", prefix, "对齐", filename1, filename2)
     else:
-        print("Doing fastdtw...")
+        print("进行 fastdtw...")
         tic = time.time()
         path_fastdtw = linmdtw.fastdtw(X1, X2, radius = delta)
         elapsed = time.time()-tic
-        print("Elapsed time fastdtw", elapsed)
+        print("fastdtw 耗时", elapsed)
         path_fastdtw = np.array([[p[0], p[1]] for p in path_fastdtw])
         res = {"path_fastdtw":path_fastdtw, "elapsed_fastdtw":elapsed}
         if do_stretch_approx:
             x = linmdtw.stretch_audio(x1, x2, sr, path_fastdtw, hop_length)
             linmdtw.audiotools.save_audio(x, sr, "{}_{}_fastdtw_sync".format(filename1, prefix))
-        # Now do mrmsdtw with different memory restrictions
+        # 现在使用不同的内存限制进行 mrmsdtw
         for tauexp in [3, 4, 5, 6, 7]:
-            print("Doing mrmsdtw 10^%i"%tauexp)
+            print("进行 mrmsdtw 10^%i"%tauexp)
             tic = time.time()
             path = linmdtw.mrmsdtw(X1, X2, 10**tauexp)
             elapsed = time.time()-tic
-            print("Elapsed time mrmsdtw 10^%i: %.3g"%(tauexp, elapsed))
+            print("mrmsdtw 10^%i 耗时: %.3g"%(tauexp, elapsed))
             res['path_mrmsdtw%i'%tauexp] = path
             res['elapsed_mrmsdtw%i'%tauexp] = elapsed
         sio.savemat(approx_pathfilename, res)
@@ -191,18 +187,16 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
 
 def align_corpus(foldername, compare_cpu, do_stretch):
     """
-    Do all of the alignments on a particular corpus
-    Parameters
+    对特定语料库进行所有对齐操作
+    参数
     ----------
     foldername: string
-        Path to a folder to which to download audio.  It must 
-        contain a file "info.json," with URLs, starting, and 
-        stopping times of all pieces
+        下载音频的文件夹路径。它必须包含一个 "info.json" 文件，
+        其中包含所有片段的 URL、开始时间和结束时间
     compare_cpu: boolean
-        If true, compare to brute force CPU DTW
+        如果为真，与暴力 CPU DTW 进行比较
     do_stretch: boolean
-        If true, stretch the audio according to the GPU warping path, and save
-        to a file
+        如果为真，根据 GPU 扭曲路径拉伸音频，并保存到文件
     """
     hop_length = 512
     sr = 22050
@@ -213,10 +207,10 @@ def align_corpus(foldername, compare_cpu, do_stretch):
             try:
                 filename1 = "{}/{}_0.mp3".format(foldername, i)
                 filename2 = "{}/{}_1.mp3".format(foldername, i)
-                print("Running alignments on ", filename1, filename2)
+                print("正在对齐 ", filename1, filename2)
                 align_pieces(filename1, filename2, sr, hop_length, do_mfcc=do_mfcc, compare_cpu=compare_cpu, do_stretch=do_stretch)
             except:
-                print("ERROR")
+                print("错误")
 
 if __name__ == '__main__':
     download_corpus("OrchestralPieces/Short")

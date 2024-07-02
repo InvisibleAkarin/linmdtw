@@ -2,10 +2,10 @@
 
 pushd %~dp0
 
-REM Command file for Sphinx documentation
+REM Sphinx 文档的命令文件
 
 if "%SPHINXBUILD%" == "" (
-	set SPHINXBUILD=sphinx-build
+    set SPHINXBUILD=sphinx-build
 )
 set SOURCEDIR=source
 set BUILDDIR=build
@@ -14,15 +14,15 @@ if "%1" == "" goto help
 
 %SPHINXBUILD% >NUL 2>NUL
 if errorlevel 9009 (
-	echo.
-	echo.The 'sphinx-build' command was not found. Make sure you have Sphinx
-	echo.installed, then set the SPHINXBUILD environment variable to point
-	echo.to the full path of the 'sphinx-build' executable. Alternatively you
-	echo.may add the Sphinx directory to PATH.
-	echo.
-	echo.If you don't have Sphinx installed, grab it from
-	echo.http://sphinx-doc.org/
-	exit /b 1
+    echo.
+    echo.未找到 'sphinx-build' 命令。请确保已安装 Sphinx，
+    echo.然后将 SPHINXBUILD 环境变量设置为指向
+    echo.'sphinx-build' 可执行文件的完整路径。或者你
+    echo.可以将 Sphinx 目录添加到 PATH。
+    echo.
+    echo.如果你没有安装 Sphinx，请从以下网址获取
+    echo.http://sphinx-doc.org/
+    exit /b 1
 )
 
 %SPHINXBUILD% -M %1 %SOURCEDIR% %BUILDDIR% %SPHINXOPTS% %O%

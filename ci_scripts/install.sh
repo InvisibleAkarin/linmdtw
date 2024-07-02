@@ -1,20 +1,19 @@
 if [[ "$DISTRIB" == "conda" ]]; then
 
-  # To run conda python use the following parameters
+  # 要运行 conda python，请使用以下参数
   #  DISTRUB="conda"
   #  TRAVIS_OS_NAME=["linux", "osx"]
   #  PYTHON_VERSION=["3.4", "3.5", "3.6", "3.7"]
 
-  # Deactivate the travis-provided virtual environment and setup a
-  # conda-based environment instead
+  # 停用 travis 提供的虚拟环境，并改用基于 conda 的环境
   deactivate
 
-  # Use the miniconda installer for faster download / install of conda itself
+  # 使用 miniconda 安装程序更快地下载/安装 conda 本身
   pushd .
   cd
   mkdir -p download
   cd download
-  echo "Cached in $HOME/download :"
+  echo "缓存于 $HOME/download :"
   ls -l
  
   if [ "$TRAVIS_OS_NAME" = linux ]; then
@@ -24,9 +23,9 @@ if [[ "$DISTRIB" == "conda" ]]; then
       MINICONDAVERSION="MacOSX"
   fi
 
-  echo "Set miniconda version $MINICONDAVERSION"
+  echo "设置 miniconda 版本 $MINICONDAVERSION"
 
-  echo "Get the miniconda for python 3"
+  echo "获取 python 3 的 miniconda"
   if [[ ! -f miniconda.sh ]]; then
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-$MINICONDAVERSION-x86_64.sh -O miniconda.sh 
   fi
@@ -37,7 +36,7 @@ if [[ "$DISTRIB" == "conda" ]]; then
 
   cd $TRAVIS_BUILD_DIR
 
-  # Configure the conda environment and put it in the path using the provided versions
+  # 使用提供的版本配置 conda 环境并将其放入路径中
   conda create -n testenv --yes python=$PYTHON_VERSION numpy matplotlib numba scipy pip cython pytest pytest-cov
 
   source activate testenv

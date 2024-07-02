@@ -61,7 +61,7 @@ def plot_err_distributions(short = True):
                             distfn(mfcc_path_gpu, mfcc_path_cpu)))
             XGPUCPU[i, :] = get_cdf(d, times)
 
-        # Load in approximate
+        # 加载近似对齐结果
         res = sio.loadmat("{}/{}_0.mp3_chroma_approx_path.mat".format(foldername, i))
         XChromaFastDTW[i, :] = get_cdf(distfn(chroma_path_gpu, res['path_fastdtw']), times)
         for k, exp in enumerate(tauexp):
@@ -91,18 +91,18 @@ def plot_err_distributions(short = True):
             cdf += (X[:, k]**p).tolist()
     plt.figure(figsize=(6, 4))
     palette = sns.color_palette("cubehelix", len(times))
-    df = pd.DataFrame({"DTW Type":approxtype, "Error (sec)":cdfthresh, "Proportion within Error Tolerance":cdf})
+    df = pd.DataFrame({"DTW 类型":approxtype, "误差（秒）":cdfthresh, "误差容限内的比例":cdf})
     ax = plt.gca()
-    g = sns.swarmplot(x="DTW Type", y="Proportion within Error Tolerance", hue="Error (sec)", data=df, palette=palette)
+    g = sns.swarmplot(x="DTW 类型", y="误差容限内的比例", hue="误差（秒）", data=df, palette=palette)
     ticks = np.linspace(0, 1, 11)
     ax.set_yticks(ticks)
     ax.set_yticklabels(["%.2g"%(t**(1.0/p)) for t in ticks])
     ax.set_xticklabels(g.get_xticklabels(), rotation=90)
     if short:
-        plt.title("Alignment Errors on Shorter Pieces")
+        plt.title("较短片段的对齐误差")
         plt.savefig("Shorter.svg", bbox_inches='tight')
     else:
-        plt.title("Alignment Errors on Longer Pieces")
+        plt.title("较长片段的对齐误差")
         plt.savefig("Longer.svg", bbox_inches='tight')
     
 
@@ -160,9 +160,9 @@ def get_length_distributions():
             lengths.append(M/(hop_length*60))
             lengths.append(N/(hop_length*60))
         sns.distplot(np.array(lengths), kde=False, bins=20, rug=True)
-        plt.xlabel("Duration (Minutes)")
-        plt.ylabel("Counts")
-        plt.title("{} Collection".format(s))
+        plt.xlabel("持续时间（分钟）")
+        plt.ylabel("计数")
+        plt.title("{} 收集".format(s))
     plt.savefig("Counts.svg", bbox_inches='tight')
 
 
@@ -182,9 +182,9 @@ def get_cell_usage_distributions():
                 ratios.append(total/denom)
     plt.figure(figsize=(5, 3))
     sns.distplot(ratios, kde=False)
-    plt.title("Ratio of cells processed to total cells")
-    plt.xlabel("Ratio")
-    plt.ylabel("Counts")
+    plt.title("处理的单元与总单元的比率")
+    plt.xlabel("比率")
+    plt.ylabel("计数")
     plt.savefig("Cell.svg", bbox_inches='tight')
 
 
