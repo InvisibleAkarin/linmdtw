@@ -28,22 +28,22 @@ def check_euclidean_inputs(X, Y):
         第二个时间序列，可能在内存中被复制为 32 位，C 连续的
     """
     if X.shape[1] != Y.shape[1]:
-        raise ValueError("The input time series are not in the same dimension space")
+        raise ValueError("输入的时间序列不在相同的维度空间中")
     if X.shape[0] < X.shape[1]:
-        warnings.warn("X {} has more columns than rows; did you mean to transpose?".format(X.shape))
+        warnings.warn("X {} 的列数多于行数；你是否想要转置？".format(X.shape))
     if Y.shape[0] < Y.shape[1]:
-        warnings.warn("Y {} has more columns than rows; did you mean to transpose?".format(Y.shape))
+        warnings.warn("Y {} 的列数多于行数；你是否想要转置？".format(Y.shape))
     if not X.dtype == np.float32:
-        warnings.warn("X is not 32-bit, so creating 32-bit version")
+        warnings.warn("X 不是 32 位的，因此创建 32 位版本")
         X = np.array(X, dtype=np.float32)
     if not X.flags['C_CONTIGUOUS']:
-        warnings.warn("X is not C-contiguous; creating a copy that is C-contiguous")
+        warnings.warn("X 不是 C 连续的；创建一个 C 连续的副本")
         X = X.copy(order='C')
     if not Y.dtype == np.float32:
-        warnings.warn("Y is not 32-bit, so creating 32-bit version")
+        warnings.warn("Y 不是 32 位的，因此创建 32 位版本")
         Y = np.array(Y, dtype=np.float32)
     if not Y.flags['C_CONTIGUOUS']:
-        warnings.warn("Y is not C-contiguous; creating a copy that is C-contiguous")
+        warnings.warn("Y 不是 C 连续的；创建一个 C 连续的副本")
         Y = Y.copy(order='C')
     return X, Y
 

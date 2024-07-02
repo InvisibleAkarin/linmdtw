@@ -101,9 +101,9 @@ def update_alignment_metadata(metadata = None, newcells = 0):
             if 'perc' in metadata:
                 perc = metadata['perc']
             if after > before and after % perc == 0:
-                print("Parallel Alignment {}% ".format(after), end='')
+                print("并行对齐 {}% ".format(after), end='')
                 if 'timeStart' in metadata:
-                    print("Elapsed time: %.3g"%(time.time()-metadata['timeStart']))
+                    print("已用时间: %.3g"%(time.time()-metadata['timeStart']))
 
 def get_csm(X, Y): # pragma: no cover
     """
@@ -330,7 +330,7 @@ def get_alignment_area_dist(P1, P2, do_plot = False):
         plt.imshow(A.toarray())
         plt.scatter(P1[:, 1], P1[:, 0], 5, 'c', edgecolor = 'none')
         plt.scatter(P2[:, 1], P2[:, 0], 5, 'r', edgecolor = 'none')
-        plt.title("Dist = %g"%dist)
+        plt.title("距离 = %g"%dist)
     return dist
 
 
