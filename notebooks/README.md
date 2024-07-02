@@ -1,20 +1,20 @@
-# Notebooks
+# 笔记本
 
-These notebooks show common use cases for this library.  The BasicUsage notebook only requires the dependencies in requirements.txt, while the AudioUsage library also requires what's in requirements_audio.txt.  The latter will also run much faster if you are using pycuda.
+这些笔记本展示了该库的常见用例。BasicUsage 笔记本只需要 requirements.txt 中的依赖项，而 AudioUsage 笔记本还需要 requirements_audio.txt 中的依赖项。如果你使用 pycuda，后者的运行速度会快得多。
 
-## Web audio examples
+## 网络音频示例
 
-Annoyingly, github's Jupyter viewer does not allow replay of audio using HMTL5.  Therefore, if you want to simply listen to the precomputed results in the AudioUsage example, they are below
+令人烦恼的是，GitHub 的 Jupyter 查看器不允许使用 HTML5 重播音频。因此，如果你只想听 AudioUsage 示例中的预计算结果，请查看以下内容。
 
-### Vivalid's Spring
+### 维瓦尔第的《春》
 
-Before we apply the computed warping path, let's compare the first 40 seconds of the two audio clips side by side. We'll put the first one in the left ear and the second one in the right ear. The one on the left goes faster than the one on the right, but it starts later. Because of this, they are in sync for a brief moment, but the left one then overtakes the right one for the rest of it.
-<a href = "unsync0.mp3">Click here</a> to listen to the audio file <code>unsync0.mp3</code>
+在我们应用计算出的变形路径之前，让我们将两个音频片段的前 40 秒进行对比。我们将第一个放在左耳，第二个放在右耳。左边的音频比右边的快，但它开始得更晚。因此，它们会短暂地同步，但随后左边的音频会在剩余时间里超过右边的音频。
+<a href="unsync0.mp3">点击这里</a> 收听音频文件 <code>unsync0.mp3</code>
 
-Let's now apply the computed warping path to see how the alignment went. This library wraps arround the pyrubberband library, which we can use to stretch the audio in x1 to match x2, according to this warping path. The method <code>stretch_audio</code> returns a stereo audio stream with the resulting stretched version of x1 in the left ear and the original version of x2 in the right ear. Let's save the first 30 seconds of this to disk and listen to it
-<a href = "sync0.mp3">Click here</a> to listen to the audio file <code>sync0.mp3</code>
+现在让我们应用计算出的变形路径，看看对齐效果如何。该库封装了 pyrubberband 库，我们可以使用它来拉伸 x1 的音频以匹配 x2，根据这个变形路径。方法 <code>stretch_audio</code> 返回一个立体声音频流，左耳是拉伸后的 x1 版本，右耳是原始的 x2 版本。让我们将前 30 秒保存到磁盘并收听。
+<a href="sync0.mp3">点击这里</a> 收听音频文件 <code>sync0.mp3</code>
 
-### Schubert's Unfinished Symphony
+### 舒伯特的《未完成交响曲》
 
-We now show one more example with a 45 second clip from Schubert's Unfinished Symphony (short clip index 5 in the paper corpus)
-<a href = "sync5.mp3">Click here</a> to listen to the audio file <code>sync5.mp3</code>
+我们现在展示另一个示例，使用舒伯特的《未完成交响曲》中的 45 秒片段（论文语料库中的短片段索引 5）。
+<a href="sync5.mp3">点击这里</a> 收听音频文件 <code>sync5.mp3</code>
