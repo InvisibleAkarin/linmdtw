@@ -195,12 +195,12 @@ def refine_warping_path(path):
         一组精炼的对应关系
     """
     N = path.shape[0]
-    ## Step 1: Identify all vertical and horizontal segments
+    ## 步骤1：识别所有垂直和水平线段
     vert_horiz = []
     i = 0
     while i < N-1:
         if path[i+1, 0] == path[i, 0]:
-            # Vertical line
+            # 垂直线
             j = i+1
             while path[j, 0] == path[i, 0] and j < N-1:
                 j += 1
@@ -211,7 +211,7 @@ def refine_warping_path(path):
                 vert_horiz.append({'type':'vert', 'i':i, 'j':j})
                 i = j
         elif path[i+1, 1] == path[i, 1]:
-            # Horizontal line
+            # 水平线
             j = i+1
             while path[j, 1] == path[i, 1] and j < N-1:
                 j += 1
@@ -224,14 +224,14 @@ def refine_warping_path(path):
         else:
             i += 1
     
-    ## Step 2: Compute local densities
+    ## 步骤2：计算局部密度
     xidx = []
     density = []
     i = 0
     vhi = 0
     while i < N:
         inext = i+1
-        if vhi < len(vert_horiz) and vert_horiz[vhi]['i'] == i: # This is a vertical or horizontal segment
+        if vhi < len(vert_horiz) and vert_horiz[vhi]['i'] == i: # 这是一个垂直或水平线段
             v = vert_horiz[vhi]
             n_seg = v['j']-v['i']+1
             xidxi = []
@@ -241,14 +241,14 @@ def refine_warping_path(path):
             if vhi > 0:
                 v2 = vert_horiz[vhi-1]
                 if i == v2['j']:
-                    # First segment is at a corner
+                    # 第一个线段在一个角落
                     n_seg_prev = v2['j']-v2['i']+1
             if vhi < len(vert_horiz) - 1:
                 v2 = vert_horiz[vhi+1]
                 if v['j'] == v2['i']:
-                    # Last segment is a corner
+                    # 最后一个线段是一个角落
                     n_seg_next = v2['j']-v2['i']+1
-            # Case 1: Vertical Segment
+            # 情况1：垂直线段
             if v['type'] == 'vert':
                 xidxi = [path[i, 0] + k/n_seg for k in range(n_seg+1)]
                 densityi = [n_seg]*(n_seg+1)
@@ -260,7 +260,7 @@ def refine_warping_path(path):
                     inext = v['j']
                 else:
                     inext = v['j']+1
-            # Case 2: Horizontal Segment
+            # 情况2：水平线段
             else:  
                 xidxi = [path[i, 0] + k for k in range(n_seg)]
                 densityi = [1/n_seg]*n_seg
@@ -275,12 +275,12 @@ def refine_warping_path(path):
             density += densityi
             vhi += 1
         else:
-            # This is a diagonal segment
+            # 这是一个对角线段
             xidx += [path[i, 0], path[i, 0]+1]
             density += [1, 1]
         i = inext
     
-    ## Step 3: Integrate densities
+    ## 步骤3：整合密度
     xidx = np.array(xidx)
     density = np.array(density)
     path_refined = [[0, 0]]
@@ -356,10 +356,10 @@ def get_alignment_row_dists(P1, P2):
     dists = np.zeros(P1.shape[0])
     i2 = 0
     for i1 in range(P1.shape[0]):
-        # Move along P2 until it's at the same row
+        # 沿着 P2 移动直到它在同一行
         while P2[i2, 0] != P1[i1, 0]:
             i2 += 1
-        # Check all entries of P2 that have the same row
+        # 检查 P2 中所有具有相同行的条目
         mindist = abs(P2[i2, 1] - P1[i1, 1])
         k = i2+1
         while k < P2.shape[0] and P2[k, 0] == P1[i1, 0]:
