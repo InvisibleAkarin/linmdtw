@@ -17,8 +17,7 @@ class TestDTWApprox:
 
     def test_fasdtw(self):
         """
-        Show that the fastdtw error is inversely correlated with the search
-        radius
+        表明 fastdtw 误差与搜索半径成反比
         """
         X, Y = get_pcs(1000)
         path1 = np.array(linmdtw.dtw_brute_backtrace(X, Y)[1])
@@ -30,7 +29,7 @@ class TestDTWApprox:
     
     def test_cdtw(self):
         """
-        Test constrained dynamic time warping with Sakoe-Chiba band
+        测试使用 Sakoe-Chiba 带的约束动态时间规整
         """
         np.random.seed(1)
         M = 100
@@ -39,9 +38,8 @@ class TestDTWApprox:
         X = np.zeros((M, 2), dtype=np.float32)
         X[:, 0] = np.cos(2*np.pi*t1)
         X[:, 1] = np.sin(8*np.pi*t1)
-        ## Sample an element from a dictionary of parameterizations
-        ## and use this parameterization to interpolate the original
-        ## time series
+        ## 从参数化字典中抽取一个元素
+        ## 并使用此参数化来插值原始时间序列
         D = linmdtw.alignmenttools.get_parameterization_dict(N)
         s = linmdtw.alignmenttools.sample_parameterization_dict(D, 4)
         Y = linmdtw.alignmenttools.get_interpolated_euclidean_timeseries(X, s)
@@ -58,8 +56,7 @@ class TestDTWApprox:
 
     def test_mrmsdtw(self):
         """
-        Test that the error is monotonically increasing when the memory
-        is decreased in mrmsdtw
+        测试当内存减少时，mrmsdtw 的误差是单调增加的
         """
         X, Y = get_pcs(1000)
         path1 = linmdtw.dtw_brute_backtrace(X, Y)[1]
@@ -75,7 +72,7 @@ class TestDTWApprox:
 
     def test_mrmsdtw_refine(self):
         """
-        Test that error is lower after refinement
+        测试在细化之后误差是否降低
         """
         X, Y = get_pcs(1000)
         path1 = linmdtw.dtw_brute_backtrace(X, Y)[1]

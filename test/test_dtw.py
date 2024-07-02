@@ -3,7 +3,7 @@ import numpy as np
 import linmdtw
 
 class TestLibrary:
-    # Does the library install in scope? Are the objects in scope?
+    # 库是否在作用域内安装？对象是否在作用域内？
     def test_import(self):
         import linmdtw
         from linmdtw import linmdtw, dtw_brute, dtw_brute_backtrace, fastdtw, mrmsdtw
@@ -21,20 +21,18 @@ class TestDTW:
 
     def test_dimension_warning(self):
         """
-        A test that makes sure that a warning is thrown when there are fewer
-        rows than columns
+        测试当行数少于列数时，确保会抛出警告
         """
         np.random.seed(0)
         X = np.random.rand(3, 10)
-        with pytest.warns(UserWarning, match="has more columns than rows") as w:
+        with pytest.warns(UserWarning, match="列数多于行数") as w:
             linmdtw.linmdtw(X, X)
-        with pytest.warns(UserWarning, match="has more columns than rows") as w:
+        with pytest.warns(UserWarning, match="列数多于行数") as w:
             linmdtw.dtw_brute_backtrace(X, X)
     
     def test_shape_error(self):
         """
-        A test that makes sure an error is raised if the two 
-        time series are not in the same Euclidean dimension
+        测试如果两个时间序列不在相同的欧几里得维度中，确保会抛出错误
         """
         np.random.seed(0)
         X = np.random.rand(10, 3)
@@ -44,9 +42,7 @@ class TestDTW:
 
     def test_brute_vs_diag(self):
         """
-        Make sure there is only a small discrepancy between
-        using the textbook "raster order" algorithm against the
-        diagonal divide and conquer algorithm 
+        确保使用教科书中的“光栅顺序”算法与对角线分治算法之间只有很小的差异
         """
         import time
         N = 2000
@@ -73,8 +69,7 @@ class TestDTW:
     
     def test_synthetic_warppath(self):
         """
-        Create a random synthetic warping path and verify that linmdtw
-        yields a warping path within a small error of this path
+        创建一个随机的合成扭曲路径，并验证 linmdtw 生成的扭曲路径在该路径的小误差范围内
         """
         np.random.seed(1)
         M = 2000
