@@ -1,6 +1,5 @@
 """
-Provides an interface to CUDA for running a parallel version
-of the diagonal DTW algorithm
+提供一个 CUDA 接口，用于运行并行版本的对角 DTW 算法
 """
 
 import numpy as np
@@ -14,18 +13,18 @@ DTW_GPU_Failed = False
 def init_gpu():
     s = """
     __global__ void DTW_Diag_Step(float* d0, float* d1, float* d2, float* csm0, float* csm1, float* csm2, float* X, float* Y, int dim, int diagLen, int* box, int reverse, int i, int debug, float* U, float* L, float* UL, float* S) {
-        //Other local variables
-        int i1, i2, j1, j2; // Endpoints of the diagonal
-        int thisi, thisj; // Current indices on the diagonal
-        // Optimal score and particular score for up/right/left
+        // 其他局部变量
+        int i1, i2, j1, j2; // 对角线的端点
+        int thisi, thisj; // 对角线上的当前索引
+        // 最优得分和上/右/左的特定得分
         float score, left, up, diag; 
         int idx = threadIdx.x + blockIdx.x*blockDim.x;
         int xi, yj;
 
-        //Process each diagonal
+        // 处理每个对角线
         score = -1;
         if (idx < diagLen) {
-            // Figure out indices in X and Y on diagonal
+            // 计算对角线上的X和Y的索引
             int M = box[1] - box[0] + 1;
             int N = box[3] - box[2] + 1;
             i1 = i;
@@ -52,7 +51,7 @@ def init_gpu():
                 }
                 xi += box[0];
                 yj += box[2];
-                // Step 1: Update csm2
+                // 第一步：更新 csm2
                 csm2[idx] = 0.0;
                 for (int d = 0; d < dim; d++) {
                     float diff = X[xi*dim+d] - Y[yj*dim+d];
@@ -61,7 +60,7 @@ def init_gpu():
                 csm2[idx] = sqrt(csm2[idx]);
                 
 
-                // Step 2: Figure out the optimal cost
+                // 第二步：计算最优代价
                 if (thisi == 0 && thisj == 0) {
                     score = 0;
                     if (debug == -1) {
@@ -133,26 +132,26 @@ def init_gpu():
         except Exception as e:
             global DTW_GPU_Failed
             DTW_GPU_Failed = True
-            warnings.warn("Unable to compile GPU kernel {}".format(e))
+            warnings.warn("无法编译 GPU 内核 {}".format(e))
 
 def dtw_diag_gpu(X, Y, k_save = -1, k_stop = -1, box = None, reverse=False, debug=False, metadata=None):
     """
-    Compute dynamic time warping between two time-ordered
-    point clouds in Euclidean space, using CUDA on the back end
-    Parameters
+    使用 CUDA 作为后端，计算两个时间有序的欧几里得点云之间的动态时间规整
+
+    参数
     ----------
     X: ndarray(M, d)
-        An M-dimensional Euclidean point cloud
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        An N-dimensional Euclidean point cloud
+        一个包含 N 个点的 d 维欧几里得点云
     k_save: int
-        Index of the diagonal d2 at which to save d0, d1, and d2
+        保存 d0、d1 和 d2 的对角线 d2 的索引
     k_stop: int
-        Index of the diagonal d2 at which to stop computation
+        停止计算的对角线 d2 的索引
     debug: boolean
-        Whether to save the accumulated cost matrix
+        是否保存累积代价矩阵
     metadata: dictionary
-        A dictionary for storing information about the computation
+        用于存储计算信息的字典
     """
     assert(X.shape[1] == Y.shape[1])
     global DTW_GPU_Initialized

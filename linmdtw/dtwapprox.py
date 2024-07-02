@@ -9,18 +9,18 @@ from .alignmenttools import get_path_cost
 
 def fill_block(A, p, radius, val):
     """
-    Fill a square block with values
+    用值填充一个方块
 
-    Parameters
+    参数
     ----------
-    A: ndarray(M, N) or sparse(M, N)
-        The array to fill
+    A: ndarray(M, N) 或 sparse(M, N)
+        要填充的数组
     p: list of [i, j]
-        The coordinates of the center of the box
+        方块中心的坐标
     radius: int
-        Half the width of the box
+        方块宽度的一半
     val: float
-        Value to fill in
+        要填充的值
     """
     i1 = max(p[0]-radius, 0)
     i2 = min(p[0]+radius, A.shape[0]-1)
@@ -30,27 +30,26 @@ def fill_block(A, p, radius, val):
 
 def _dtw_constrained_occ(X, Y, Occ, debug=False, level=0, do_plot=False):
     """
-    DTW on a constrained occupancy mask.  A helper method for both fastdtw
-    and cdtw
+    在受限占用掩码上进行 DTW。一个用于 fastdtw 和 cdtw 的辅助方法
     
-    Parameters
+    参数
     ----------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
+        一个包含 N 个点的 d 维欧几里得点云
     Occ: scipy.sparse((M, N))
-        A MxN array with 1s if this cell is to be evaluated and 0s otherwise
+        一个 MxN 的数组，如果这个单元格要被评估则为 1，否则为 0
     debug: boolean
-        Whether to keep track of debugging information
+        是否跟踪调试信息
     level: int
-        An int for keeping track of the level of recursion, if applicable
+        用于跟踪递归层级的整数（如果适用）
     do_plot: boolean
-        Whether to plot the warping path at each level and save to image files
+        是否在每个层级绘制变形路径并保存为图像文件
     
-    Returns
+    返回
     -------
-        (float: cost, ndarray(K, 2): The warping path)
+        (float: cost, ndarray(K, 2): 变形路径)
     """
     M = X.shape[0]
     N = Y.shape[0]
@@ -58,7 +57,7 @@ def _dtw_constrained_occ(X, Y, Occ, debug=False, level=0, do_plot=False):
     S = sparse.lil_matrix((M, N))
     P = sparse.lil_matrix((M, N), dtype=int)
     I, J = Occ.nonzero()
-    # Sort cells in raster order
+    # 按栅格顺序排序单元格
     idx = np.argsort(J)
     I = I[idx]
     J = J[idx]
@@ -66,37 +65,37 @@ def _dtw_constrained_occ(X, Y, Occ, debug=False, level=0, do_plot=False):
     I = I[idx]
     J = J[idx]
 
-    ## Step 2: Find indices of left, up, and diag neighbors.  
-    # All neighbors must be within bounds *and* within sparse structure
-    # Make idx M+1 x N+1 so -1 will wrap around to 0
-    # Make 1-indexed so all valid entries have indices > 0
+    ## 步骤2：找到左、上和对角邻居的索引。
+    # 所有邻居必须在边界内，并且在稀疏结构内
+    # 使idx为M+1 x N+1，这样-1将环绕到0
+    # 使其为1索引，这样所有有效条目索引都大于0
     idx = sparse.coo_matrix((np.arange(I.size)+1, (I, J)), shape=(M+1, N+1)).tocsr()
-    # Left neighbors
+    # 左邻居
     left = np.array(idx[I, J-1], dtype=np.int32).flatten()
     left[left <= 0] = -1
     left -= 1
-    # Up neighbors
+    # 上邻居
     up = np.array(idx[I-1, J], dtype=np.int32).flatten()
     up[up <= 0] = -1
     up -= 1
-    # Diag neighbors
+    # 对角邻居
     diag = np.array(idx[I-1, J-1], dtype=np.int32).flatten()
     diag[diag <= 0] = -1
     diag -= 1
 
-    ## Step 3: Pass information to cython for dynamic programming steps
-    S = np.zeros(I.size, dtype=np.float32) # Dyn prog matrix
-    P = np.zeros(I.size, dtype=np.int32) # Path pointer matrix
+    ## 步骤3：将信息传递给cython进行动态规划步骤
+    S = np.zeros(I.size, dtype=np.float32) # 动态规划矩阵
+    P = np.zeros(I.size, dtype=np.int32) # 路径指针矩阵
     dynseqalign.FastDTW_DynProg_Step(X, Y, I, J, left, up, diag, S, P)
     P = sparse.coo_matrix((P, (I, J)), shape=(M, N)).tocsr()
     if debug or do_plot: # pragma: no cover
         S = sparse.coo_matrix((S, (I, J)), shape=(M, N)).tocsr()
     
-    # Step 4: Do backtracing
+    # 步骤4：进行回溯
     i = M-1
     j = N-1
     path = [[i, j]]
-    step = [[0, -1], [-1, 0], [-1, -1]] # LEFT, UP, DIAG
+    step = [[0, -1], [-1, 0], [-1, -1]] # 左, 上, 对角
     while not(path[-1][0] == 0 and path[-1][1] == 0):
         s = step[P[i, j]]
         i += s[0]
@@ -120,28 +119,27 @@ def _dtw_constrained_occ(X, Y, Occ, debug=False, level=0, do_plot=False):
 
 def fastdtw(X, Y, radius, debug=False, level = 0, do_plot=False):
     """
-    An implementation of [1]
-    [1] FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space. Stan Salvador and Philip Chan
+    实现 [1]
+    [1] FastDTW: Toward Accurate Dynamic Time Warping in Linear Time and Space. Stan Salvador 和 Philip Chan
     
-    Parameters
+    参数
     ----------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
+        一个包含 N 个点的 d 维欧几里得点云
     radius: int
-        Radius of the l-infinity box that determines sparsity structure
-        at each level
+        l-无穷大盒子的半径，决定了每个层级的稀疏结构
     debug: boolean
-        Whether to keep track of debugging information
+        是否跟踪调试信息
     level: int
-        An int for keeping track of the level of recursion
+        用于跟踪递归层级的整数
     do_plot: boolean
-        Whether to plot the warping path at each level and save to image files
+        是否在每个层级绘制变形路径并保存为图像文件
     
-    Returns
+    返回
     -------
-        (float: cost, ndarray(K, 2): The warping path)
+        (float: cost, ndarray(K, 2): 变形路径)
     """
     X, Y = check_euclidean_inputs(X, Y)
     minTSsize = radius + 2
@@ -151,7 +149,7 @@ def fastdtw(X, Y, radius, debug=False, level = 0, do_plot=False):
     Y = np.ascontiguousarray(Y)
     if M < radius or N < radius:
         return dtw_brute_backtrace(X, Y)
-    # Recursive step
+    # 递归步骤
     cost, path = fastdtw(X[0::2, :], Y[0::2, :], radius, debug, level+1, do_plot)
     if type(path) is dict:
         path = path['path']
@@ -159,32 +157,31 @@ def fastdtw(X, Y, radius, debug=False, level = 0, do_plot=False):
     path *= 2
     Occ = sparse.lil_matrix((M, N))
 
-    ## Step 1: Figure out the indices of the occupied cells
+    ## 步骤1：找出被占用单元格的索引
     for p in path:
         fill_block(Occ, p, radius, 1)
     return _dtw_constrained_occ(X, Y, Occ, debug, level, do_plot)
 
 def cdtw(X, Y, radius, debug=False, do_plot=False):
     """
-    Dynamic time warping with constraints, as per the Sakoe-Chiba band
+    带约束的动态时间规整，按照 Sakoe-Chiba 带
     
-    Parameters
+    参数
     ----------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
+        一个包含 N 个点的 d 维欧几里得点云
     radius: int
-        How far away a warping path is allowed to stray from the identity
-        map in either direction
+        变形路径允许偏离恒等映射的最大距离
     debug: boolean
-        Whether to keep track of debugging information
+        是否跟踪调试信息
     do_plot: boolean
-        Whether to plot the warping path at each level and save to image files
+        是否在每个层级绘制变形路径并保存为图像文件
     
-    Returns
+    返回
     -------
-        (float: cost, ndarray(K, 2): The warping path)
+        (float: cost, ndarray(K, 2): 变形路径)
     """
     radius = int(max(radius, 1))
     X, Y = check_euclidean_inputs(X, Y)
@@ -194,7 +191,7 @@ def cdtw(X, Y, radius, debug=False, do_plot=False):
     Y = np.ascontiguousarray(Y)
     if M < radius or N < radius:
         return dtw_brute_backtrace(X, Y)
-    ## Step 1: Figure out the indices of the occupied cells
+    ## 步骤1：找出被占用单元格的索引
     Occ = sparse.lil_matrix((M, N))
     slope = M/N
     for i in range(max(M, N)):
@@ -210,18 +207,18 @@ def cdtw(X, Y, radius, debug=False, do_plot=False):
 
 def get_box_area(a1, a2):
     """
-    Get the area of a box specified by two anchors
+    获取由两个锚点指定的方块面积
     
-    Parameters
+    参数
     ----------
     a1: list(2)
-        Row/column of first anchor
+        第一个锚点的行/列
     a2: list(2)
-        Row/column of second anchor
+        第二个锚点的行/列
     
-    Returns
+    返回
     -------
-    Area of box determined by these two anchors
+    由这两个锚点确定的方块面积
     """
     m = a2[0]-a1[0]+1
     n = a2[1]-a1[1]+1
@@ -229,41 +226,37 @@ def get_box_area(a1, a2):
 
 def mrmsdtw(X, Y, tau, debug=False, refine=True):
     """
-    An implementation of the approximate, memory-restricted
-    multiscale DTW technique from [2]
+    实现了 [2] 中的近似、内存受限的多尺度 DTW 技术
     [2] "Memory-Restricted Multiscale Dynamic Time Warping"
-    Thomas Praetzlich, Jonathan Driedger and Meinard Mueller
+    Thomas Praetzlich, Jonathan Driedger 和 Meinard Mueller
     
-    Parameters
+    参数
     ----------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
+        一个包含 N 个点的 d 维欧几里得点云
     tau: int
-        The max amount of cells to be in memory at any given
-        time
+        任意时刻在内存中的最大单元格数量
     debug: boolean
-        Whether to keep track of debugging information
+        是否跟踪调试信息
     refine: boolean
-        Whether to do refinement with the "white anchors"
+        是否使用“白色锚点”进行细化
     
-    Returns
+    返回
     -------
     path: ndarray(K, 2)
-        The warping path
+        变形路径
     """
     X, Y = check_euclidean_inputs(X, Y)
     M = X.shape[0]
     N = Y.shape[0]
     if M*N < tau:
-        # If the matrix is already within the memory bounds, simply
-        # return DTW
+        # 如果矩阵已经在内存限制范围内，则直接返回DTW
         return dtw_brute_backtrace(X, Y)
 
-    ## Step 1: Perform DTW at the coarse level
-    # Figure out the subsampling factor for the
-    # coarse alignment based on memory requirements
+    ## 步骤1：在粗略级别执行DTW
+    # 根据内存需求确定粗略对齐的子采样因子
     d = int(np.ceil(np.sqrt(M*N/tau)))
     X2 = np.ascontiguousarray(X[0::d, :])
     Y2 = np.ascontiguousarray(Y[0::d, :])
@@ -272,24 +265,23 @@ def mrmsdtw(X, Y, tau, debug=False, refine=True):
     if anchors[-1][0] < M-1 or anchors[-1][1] < N-1:
         anchors.append([M-1, N-1])
     
-    ## Step 2: Subdivide anchors if necessary to keep
-    # within memory bounds
+    ## 步骤2：如有必要，细分锚点以保持在内存限制范围内
     idx = 0
     while idx < len(anchors)-1:
         a1 = anchors[idx]
         a2 = anchors[idx+1]
         if get_box_area(a1, a2) > tau:
-            # Subdivide cell
+            # 细分单元格
             i = int((a1[0]+a2[0])/2)
             j = int((a1[1]+a2[1])/2)
             anchors = anchors[0:idx+1] + [[i, j]] + anchors[idx+1::]
         else:
-            # Move on
+            # 继续
             idx += 1
     
-    ## Step 3: Do alignments in each block
+    ## 步骤3：在每个块中进行对齐
     path = np.array([], dtype=int)
-    # Keep track of the "black anchor" indices in the path
+    # 记录路径中的“黑色锚点”索引
     banchors_idx = [0]
     for i in range(len(anchors)-1):
         a1 = anchors[i]
@@ -301,27 +293,27 @@ def mrmsdtw(X, Y, tau, debug=False, refine=True):
         else:
             path = np.concatenate((path, pathi[0:-1, :]), axis=0)
         banchors_idx.append(len(path)-1)
-    # Add last endpoints
+    # 添加最后的端点
     path = np.concatenate((path, np.array([[M-1, N-1]], dtype=int)), axis=0)
     if not refine:
         return (get_path_cost(X, Y, path), path)
     
-    ## Step 4: Come up with the set of "white anchors"
-    # First choose them to be at the center of each block
+    ## 步骤4：提出“白色锚点”集合
+    # 首先选择它们位于每个块的中心
     wanchors_idx = []
     for idx in range(len(banchors_idx)-1):
         wanchors_idx.append([int(0.5*(banchors_idx[idx]+banchors_idx[idx+1]))]*2)
-    # Split anchor positions if the blocks are too big
+    # 如果块太大，则拆分锚点位置
     for i in range(len(wanchors_idx)-1):
         a1 = path[wanchors_idx[i][-1]]
         a2 = path[wanchors_idx[i+1][0]]
         while get_box_area(a1, a2) > tau:
-            # Move the anchors towards each other
+            # 将锚点相互移动
             wanchors_idx[i][-1] += 1
             wanchors_idx[i+1][0] -= 1
             a1 = path[wanchors_idx[i][-1]]
             a2 = path[wanchors_idx[i+1][0]]
-    ## Step 5: Do DTW between white anchors and splice path together
+    ## 步骤5：在白色锚点之间执行DTW并拼接路径
     pathret = path[0:wanchors_idx[0][0]+1, :]
     for i in range(len(wanchors_idx)-1):
         a1 = path[wanchors_idx[i][-1]]
@@ -329,8 +321,7 @@ def mrmsdtw(X, Y, tau, debug=False, refine=True):
         box = [a1[0], a2[0], a1[1], a2[1]]
         pathi = linmdtw(X, Y, box=box)[1]
         pathret = np.concatenate((pathret, pathi[0:-1, :]), axis=0)
-        # If there's a gap in between this box and 
-        # the next one, use the path from before
+        # 如果这个框和下一个框之间有间隙，使用之前的路径
         i1 = wanchors_idx[i+1][0]
         i2 = wanchors_idx[i+1][1]
         if i1 != i2:

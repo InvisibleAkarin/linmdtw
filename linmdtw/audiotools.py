@@ -4,26 +4,25 @@ import warnings
 
 def load_audio(filename, sr = 44100):
     """
-    Load an audio waveform from a file.  Try to use ffmpeg
-    to convert it to a .wav file so scipy's fast wavfile loader
-    can work.  Otherwise, fall back to the slower librosa
+    从文件中加载音频波形。尝试使用 ffmpeg 将其转换为 .wav 文件，
+    以便 scipy 的快速 wavfile 加载器可以工作。否则，回退到较慢的 librosa。
 
-    Parameters
+    参数
     ----------
     filename: string
-        Path to audio file to load
+        要加载的音频文件路径
     sr: int
-        Sample rate to use
+        要使用的采样率
     
-    Returns
+    返回
     -------
     y: ndarray(N)
-        Audio samples
+        音频样本
     sr: int
-        The sample rate that was actually used
+        实际使用的采样率
     """
     try:
-        # First, try a faster version of loading audio
+        # 首先，尝试使用更快的方式加载音频
         from scipy.io import wavfile
         import subprocess
         import os
@@ -37,24 +36,24 @@ def load_audio(filename, sr = 44100):
         os.remove(wavfilename)
         return y, sr
     except:
-        # Otherwise, fall back to librosa
-        warnings.warn("Falling back to librosa for audio reading, which may be slow for long audio files")
+        # 否则，回退到使用 librosa 加载音频
+        warnings.warn("回退到使用 librosa 加载音频，对于长音频文件可能会比较慢")
         import librosa
         return librosa.load(filename, sr=sr)
 
     
 def save_audio(x, sr, outprefix):
     """
-    Save audio to a file
+    将音频保存到文件
 
-    Parameters
+    参数
     ----------
     x: ndarray(N, 2)
-        Stereo audio to save
+        要保存的立体声音频
     sr: int
-        Sample rate of audio to save
+        要保存的音频的采样率
     outprefix: string
-        Use this as the prefix of the file to which to save audio
+        用作保存音频文件的前缀
     """
     from scipy.io import wavfile
     import subprocess
@@ -71,46 +70,46 @@ def save_audio(x, sr, outprefix):
 
 def get_DLNC0(x, sr, hop_length, lag=10, do_plot=False):
     """
-    Compute decaying locally adaptive normalize C0 (DLNC0) features
+    计算衰减的局部自适应归一化 C0 (DLNC0) 特征
 
-    Parameters
+    参数
     ----------
     x: ndarray(N)
-        Audio samples
+        音频样本
     sr: int
-        Sample rate
+        采样率
     hop_length: int
-        Hop size between windows
+        窗口之间的跳跃大小
     lag: int
-        Number of lags to include
+        包含的滞后数
     
-    Returns
+    返回
     -------
     X: ndarray(n_win, 12)
-        The DLNC0 features
+        DLNC0 特征
     """
     from scipy.ndimage.filters import gaussian_filter1d as gf1d
     from scipy.ndimage.filters import maximum_filter1d
     import librosa
     X = np.abs(librosa.cqt(x, sr=sr, hop_length=hop_length, bins_per_octave=12))
-    # Half-wave rectify discrete derivative
+    # 半波整流离散导数
     #X = librosa.amplitude_to_db(X, ref=np.max)
     #X[:, 0:-1] = X[:, 1::] - X[:, 0:-1]
     X = gf1d(X, 5, axis=1, order = 1)
     X[X < 0] = 0
-    # Retain peaks
+    # 保留峰值
     XLeft = X[:, 0:-2]
     XRight = X[:, 2::]
     mask = np.zeros_like(X)
     mask[:, 1:-1] = (X[:, 1:-1] > XLeft)*(X[:, 1:-1] > XRight)
     X[mask < 1] = 0
-    # Fold into octave
+    # 折叠成八度
     n_octaves = int(X.shape[0]/12)
     X2 = np.zeros((12, X.shape[1]), dtype=X.dtype)
     for i in range(n_octaves):
         X2 += X[i*12:(i+1)*12, :]
     X = X2
-    # Compute norms
+    # 计算范数
     if do_plot:
         import librosa.display
         plt.subplot(411)
@@ -126,7 +125,7 @@ def get_DLNC0(x, sr, hop_length, lag=10, do_plot=False):
         plt.subplot(413)
         X = X/norms[None, :]
         librosa.display.specshow(X, sr=sr, x_axis='time', y_axis='chroma')
-    # Apply LNCO
+    # 应用LNCO
     decays = np.linspace(0, 1, lag+1)[1::]
     decays = np.sqrt(decays[::-1])
     XRet = np.zeros_like(X)
@@ -141,53 +140,53 @@ def get_DLNC0(x, sr, hop_length, lag=10, do_plot=False):
 
 def get_mixed_DLNC0_CENS(x, sr, hop_length, lam=0.1):
     """
-    Concatenate DLNC0 to CENS
+    将 DLNC0 与 CENS 连接起来
 
-    Parameters
+    参数
     ----------
     x: ndarray(N)
-        Audio samples
+        音频样本
     sr: int
-        Sample rate
+        采样率
     hop_length: int
-        Hop size between windows
+        窗口之间的跳跃大小
     lam: float
-        The coefficient in front of the CENS features
+        CENS 特征前的系数
     
-    Returns
+    返回
     -------
     X: ndarray(n_win, 24)
-        DLNC0 features along the first 12 columns, 
-        weighted CENS along the next 12 columns
+        前 12 列是 DLNC0 特征，
+        后 12 列是加权的 CENS 特征
     """
     import librosa
     X1 = get_DLNC0(x, sr, hop_length).T
     X2 = lam*librosa.feature.chroma_cens(y=x, sr=sr, hop_length=hop_length).T
     return np.concatenate((X1, X2), axis=1)
 
-def get_mfcc_mod(x, sr, hop_length, n_mfcc=120, drop=20, n_fft = 2048):
+def get_mfcc_mod(x, sr, hop_length, n_mfcc=120, drop=20, n_fft=2048):
     """
-    Compute the mfcc_mod features, as described in Gadermaier 2019
+    计算 mfcc_mod 特征，如 Gadermaier 2019 中所述
 
-    Parameters
+    参数
     ----------
     x: ndarray(N)
-        Audio samples
+        音频样本
     sr: int
-        Sample rate
+        采样率
     hop_length: int
-        Hop size between windows
+        窗口之间的跳跃大小
     n_mfcc: int
-        Number of mfcc coefficients to compute
+        要计算的 MFCC 系数数量
     drop: int
-        Index under which to ignore coefficients
+        忽略系数的索引下限
     n_fft: int
-        Number of fft points to use in each window
+        每个窗口使用的 FFT 点数
     
-    Returns
+    返回
     -------
     X: ndarray(n_win, n_mfcc-drop)
-        The mfcc-mod features
+        MFCC-mod 特征
     """
     import skimage.transform
     import librosa
@@ -197,33 +196,33 @@ def get_mfcc_mod(x, sr, hop_length, n_mfcc=120, drop=20, n_fft = 2048):
 
 def stretch_audio(x1, x2, sr, path, hop_length, refine = True):
     """
-    Wrap around pyrubberband to warp one audio stream
-    to another, according to some warping path
+    使用 pyrubberband 将一个音频流变形为另一个音频流，
+    根据某个变形路径
 
-    Parameters
+    参数
     ----------
     x1: ndarray(M)
-        First audio stream
+        第一个音频流
     x2: ndarray(N)
-        Second audio stream
+        第二个音频流
     sr: int
-        Sample rate
+        采样率
     path: ndarray(P, 2)
-        Warping path, in units of windows
+        变形路径，以窗口为单位
     hop_length: int
-        The hop length between windows
+        窗口之间的跳跃长度
     refine: boolean
-        Whether to refine the warping path before alignment
+        是否在对齐之前优化变形路径
     
-    Returns
+    返回
     -------
     x3: ndarray(N, 2)
-        The synchronized audio.  x2 is in the right channel,
-        and x1 stretched to x2 is in the left channel
+        同步后的音频。x2 在右声道，
+        x1 变形为 x2 在左声道
     """
     from .alignmenttools import refine_warping_path
     import pyrubberband as pyrb
-    print("Stretching...")
+    print("拉伸中...")
     path_final = path.copy()
     if refine:
         path_final = refine_warping_path(path_final)

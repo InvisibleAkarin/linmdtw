@@ -8,7 +8,7 @@
 void c_fastdtw_dynstep(float* X, float* Y, int d, int* I, int* J, int* left, int* up, int* diag, float* S, int* P, int N) {
     float dist;
     for (int idx = 0; idx < N; idx++) {
-        // Step 1: Compute the Euclidean distance
+        // 第一步：计算欧几里得距离
         dist = 0.0;
         for (int k = 0; k < d; k++) {
             double diff = (X[I[idx]*d + k] - Y[J[idx]*d + k]);
@@ -16,23 +16,23 @@ void c_fastdtw_dynstep(float* X, float* Y, int d, int* I, int* J, int* left, int
         }
         dist = sqrt(dist);
 
-        // Step 2: Do dynamic progamming step
+        // 第二步：执行动态规划步骤
         float score = -1;
         if (idx == 0) {
             score = 0;
         }
         else {
-            // Left
+            // 左侧
             float leftScore = -1;
             if (left[idx] >= 0) {
                 leftScore = S[left[idx]];
             }
-            // Up
+            // 上方
             float upScore = -1;
             if (up[idx] >= 0) {
                 upScore = S[up[idx]];
             }
-            // Diag
+            // 对角线
             float diagScore = -1;
             if (diag[idx] >= 0) {
                 diagScore = S[diag[idx]];

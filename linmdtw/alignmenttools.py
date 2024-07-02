@@ -3,19 +3,20 @@ from numba import jit
 
 def get_diag_len(box, k):
     """
-    Return the number of elements in this particular diagonal
+    返回特定对角线中的元素数量
 
-    Parameters
+    参数
     ----------
     MTotal: int
-        Total number of samples in X
+        X 中样本的总数
     NTotal: int
-        Total number of samples in Y
+        Y 中样本的总数
     k: int
-        Index of the diagonal
-    Returns
+        对角线的索引
+    
+    返回
     -------
-    Number of elements
+    元素数量
     """
     M = box[1] - box[0] + 1
     N = box[3] - box[2] + 1
@@ -34,25 +35,27 @@ def get_diag_len(box, k):
 
 def get_diag_indices(MTotal, NTotal, k, box = None, reverse=False):
     """
-    Compute the indices on a diagonal into indices on an accumulated
-    distance matrix
+    计算对角线上的索引到累积距离矩阵中的索引
 
-    Parameters
+    参数
     ----------
     MTotal: int
-        Total number of samples in X
+        X 中样本的总数
     NTotal: int
-        Total number of samples in Y
+        Y 中样本的总数
     k: int
-        Index of the diagonal
+        对角线的索引
     box: list [XStart, XEnd, YStart, YEnd]
-        The coordinates of the box in which to search
-    Returns
+        搜索范围的坐标
+    reverse: boolean
+        是否反向计算索引
+    
+    返回
     -------
     i: ndarray(dim)
-        Row indices
+        行索引
     j: ndarray(dim)
-        Column indices
+        列索引
     """
     if not box:
         box = [0, MTotal-1, 0, NTotal-1]
@@ -65,7 +68,7 @@ def get_diag_indices(MTotal, NTotal, k, box = None, reverse=False):
         startj = k - (M-1)
     i = np.arange(starti, -1, -1)
     j = startj + np.arange(i.size)
-    dim = np.sum(j < N) # Length of this diagonal
+    dim = np.sum(j < N) # 该对角线的长度
     i = i[0:dim]
     j = j[0:dim]
     if reverse:
@@ -77,16 +80,15 @@ def get_diag_indices(MTotal, NTotal, k, box = None, reverse=False):
 
 def update_alignment_metadata(metadata = None, newcells = 0):
     """
-    Add new amount of cells to the total cells processed,
-    and print out a percentage point if there's been progress
+    将新处理的单元格数量添加到总处理单元格数量中，
+    并在有进展时打印出一个百分比点
 
-    Parameters
+    参数
     ----------
     newcells: int
-        The number of new cells that are being processed
+        新处理的单元格数量
     metadata: dictionary
-        Dictionary with 'M', 'N', 'totalCells', all ints
-        and 'timeStart'
+        包含 'M', 'N', 'totalCells'（均为整数）和 'timeStart' 的字典
     """
     if metadata:
         if 'M' in metadata and 'N' in metadata and 'totalCells' in metadata:
@@ -105,19 +107,19 @@ def update_alignment_metadata(metadata = None, newcells = 0):
 
 def get_csm(X, Y): # pragma: no cover
     """
-    Return the Euclidean cross-similarity matrix between X and Y
+    返回 X 和 Y 之间的欧几里得交叉相似性矩阵
 
-    Parameters
+    参数
     ---------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
+        一个包含 N 个点的 d 维欧几里得点云
     
-    Returns
+    返回
     -------
     D: ndarray(M, N)
-        The cross-similarity matrix
+        交叉相似性矩阵
     
     """
     XSqr = np.sum(X**2, 1)
@@ -128,39 +130,37 @@ def get_csm(X, Y): # pragma: no cover
 
 def get_ssm(X): # pragma: no cover
     """
-    Return the SSM between all rows of a time-ordered Euclidean point cloud X
+    返回时间有序的欧几里得点云 X 的自相似矩阵
 
-    Parameters
+    参数
     ---------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     
-    Returns
+    返回
     -------
     D: ndarray(M, M)
-        The self-similarity matrix
+        自相似矩阵
     """
     return get_csm(X, X)
 
 def get_path_cost(X, Y, path):
     """
-    Return the cost of a warping path that matches two Euclidean 
-    point clouds
+    返回匹配两个欧几里得点云的变形路径的代价
 
-    Parameters
+    参数
     ---------
     X: ndarray(M, d)
-        A d-dimensional Euclidean point cloud with M points
+        一个包含 M 个点的 d 维欧几里得点云
     Y: ndarray(N, d)
-        A d-dimensional Euclidean point cloud with N points
-    P1: ndarray(K, 2)
-        Warping path
+        一个包含 N 个点的 d 维欧几里得点云
+    path: ndarray(K, 2)
+        变形路径
     
-    Returns
+    返回
     -------
     cost: float
-        The sum of the Euclidean distances along the warping path 
-        between X and Y
+        变形路径上 X 和 Y 之间欧几里得距离的总和
     """
     x = X[path[:, 0], :]
     y = Y[path[:, 1], :]
@@ -169,8 +169,7 @@ def get_path_cost(X, Y, path):
 
 def make_path_strictly_increase(path): # pragma: no cover
     """
-    Given a warping path, remove all rows that do not
-    strictly increase from the row before
+    给定一个变形路径，移除所有不严格递增的行
     """
     toKeep = np.ones(path.shape[0])
     i0 = 0
@@ -183,18 +182,17 @@ def make_path_strictly_increase(path): # pragma: no cover
 
 def refine_warping_path(path):
     """
-    An implementation of the technique in section 4 of 
-    "Refinement Strategies for Music Synchronization" by Ewert and Müller
+    实现了 Ewert 和 Müller 在 "Refinement Strategies for Music Synchronization" 第 4 节中的技术
 
-    Parameters
+    参数
     ----------
     path: ndarray(K, 2)
-        A warping path
+        一个变形路径
     
-    Returns
+    返回
     -------
     path_refined: ndarray(N >= K, 2)
-        A refined set of correspondences
+        一组精炼的对应关系
     """
     N = path.shape[0]
     ## Step 1: Identify all vertical and horizontal segments
@@ -296,21 +294,21 @@ def refine_warping_path(path):
 
 def get_alignment_area_dist(P1, P2, do_plot = False):
     """
-    Compute area-based alignment error between two warping paths.
+    计算两个变形路径之间的基于面积的对齐误差。
 
-    Parameters
+    参数
     ----------
     ndarray(M, 2): P1
-        First warping path
+        第一个变形路径
     ndarray(N, 2): P2
-        Second warping path
+        第二个变形路径
     do_plot: boolean
-        Whether to draw a plot showing the enclosed area
+        是否绘制显示封闭区域的图
     
-    Returns
+    返回
     -------
     score: float
-        The area score
+        面积得分
     """
     import scipy.sparse as sparse
     M = np.max(P1[:, 0])
@@ -339,21 +337,20 @@ def get_alignment_area_dist(P1, P2, do_plot = False):
 @jit(nopython=True)
 def get_alignment_row_dists(P1, P2):
     """
-    A measurement of errors between two warping paths.
-    For each point in the first path, record the distance
-    of the closest point in the same row on the second path
+    测量两个变形路径之间的误差。
+    对于第一个路径中的每个点，记录在第二个路径中同一行上最近点的距离
 
-    Parameters
+    参数
     ----------
     P1: ndarray(M, 2)
-        Ground truth warping path
+        基准变形路径
     P2: ndarray(N, 2)
-        Test warping path
+        测试变形路径
     
-    Returns
+    返回
     -------
     dists: ndarray(M)
-        The errors at each point on the first warping path
+        第一个变形路径上每个点的误差
     """
     k = 0
     dists = np.zeros(P1.shape[0])
@@ -373,22 +370,21 @@ def get_alignment_row_dists(P1, P2):
 
 def get_alignment_row_col_dists(P1, P2):
     """
-    A measurement of errors between two warping paths.
-    For each point in the first path, record the distance
-    of the closest point in the same row on the second path,
-    and vice versa.  Then repeat this along the columns
+    测量两个变形路径之间的误差。
+    对于第一个路径中的每个点，记录在第二个路径中同一行上最近点的距离，
+    反之亦然。然后沿列重复此操作
 
-    Parameters
+    参数
     ----------
     P1: ndarray(M, 2)
-        Ground truth warping path
+        基准变形路径
     P2: ndarray(N, 2)
-        Test warping path
+        测试变形路径
     
-    Returns
+    返回
     -------
     dists: ndarray(2M+2N)
-        The errors
+        误差
     """
     dists11 = get_alignment_row_dists(P1, P2)
     dists12 = get_alignment_row_dists(P2, P1)
@@ -399,21 +395,21 @@ def get_alignment_row_col_dists(P1, P2):
 
 def get_interpolated_euclidean_timeseries(X, t, kind='linear'):
     """
-    Resample a time series in Euclidean space using interp2d
+    使用 interp2d 对欧几里得空间中的时间序列进行重采样
 
-    Parameters
+    参数
     ----------
     X: ndarray(M, d)
-        The Euclidean time series with n points
+        包含 n 个点的欧几里得时间序列
     t: ndarray(N)
-        A re-parameterization function on the unit interval [0, 1]
+        单位区间 [0, 1] 上的重新参数化函数
     kind: string
-        The kind of interpolation to do
+        插值的类型
     
-    Returns
+    返回
     -------
     Y: ndarray(N, d)
-        The interpolated time series
+        插值后的时间序列
     """
     import scipy.interpolate as interp
     M = X.shape[0]
@@ -426,19 +422,19 @@ def get_interpolated_euclidean_timeseries(X, t, kind='linear'):
 
 def get_inverse_fn_equally_sampled(t, x):
     """
-    Compute the inverse of a 1D function and equally sample it.
-    
-    Parameters
+    计算一维函数的反函数并对其进行等距采样。
+
+    参数
     ---------
     t: ndarray(N)
-        The domain samples of the original function
+        原函数的定义域样本
     x: ndarray(N)
-        The range samples of the original function
+        原函数的值域样本
     
-    Returns
+    返回
     -------
     y: ndarray(N)
-        The inverse function samples
+        反函数的采样值
     """
     import scipy.interpolate as interp
     N = len(t)
@@ -451,29 +447,27 @@ def get_inverse_fn_equally_sampled(t, x):
 
 def get_parameterization_dict(N, do_plot = False):
     """
-    Construct a dictionary of different types of parameterizations
-    on the unit interval
+    构建单位区间上不同类型参数化的字典
 
-    Parameters
+    参数
     ----------
     N: int
-        Number of samples on the unit interval
+        单位区间上的样本数量
     do_plot: boolean
-        Whether to plot all of the parameterizations
+        是否绘制所有参数化的图
     
-    Returns
+    返回
     -------
     D: ndarray(N, K)
-        The dictionary of parameterizations, with each warping path
-        down a different column
+        参数化字典，每个变形路径在不同的列中
     """
     t = np.linspace(0, 1, N)
     D = []
-    #Polynomial
+    # 多项式
     if do_plot: # pragma: no cover
         import matplotlib.pyplot as plt
         plt.subplot(131)
-        plt.title('Polynomial')
+        plt.title('多项式')
     for p in range(-4, 6):
         tp = p
         if tp < 0:
@@ -483,11 +477,11 @@ def get_parameterization_dict(N, do_plot = False):
         if do_plot:
             import matplotlib.pyplot as plt
             plt.plot(x)
-    #Exponential / Logarithmic
+    # 指数/对数
     if do_plot: # pragma: no cover
         import matplotlib.pyplot as plt
         plt.subplot(132)
-        plt.title('Exponential / Logarithmic')
+        plt.title('指数/对数')
     for p in range(2, 6):
         t = np.linspace(1, p**p, N)
         x = np.log(t)
@@ -503,11 +497,11 @@ def get_parameterization_dict(N, do_plot = False):
             import matplotlib.pyplot as plt
             plt.plot(x)
             plt.plot(x2)
-    #Hyperbolic Tangent
+    # 双曲正切
     if do_plot: # pragma: no cover
         import matplotlib.pyplot as plt
         plt.subplot(133)
-        plt.title('Hyperbolic Tangent')
+        plt.title('双曲正切')
     for p in range(2, 5):
         t = np.linspace(-2, p, N)
         x = np.tanh(t)
@@ -528,16 +522,15 @@ def get_parameterization_dict(N, do_plot = False):
 
 def sample_parameterization_dict(D, k, do_plot = False): 
     """
-    Return a warping path made up of k random elements
-    drawn from dictionary D
+    返回一个由 k 个随机元素组成的变形路径，
+    这些元素从字典 D 中抽取
 
-    Parameters
+    参数
     ----------
     D: ndarray(N, K)
-        The dictionary of warping paths, with each warping path
-        down a different column
+        变形路径的字典，每个变形路径在不同的列中
     k: int
-        The number of warping paths to take in a combination
+        要组合的变形路径数量
     """
     N = D.shape[0]
     dim = D.shape[1]
@@ -553,25 +546,24 @@ def sample_parameterization_dict(D, k, do_plot = False):
         plt.plot(res)
         for idx in idxs:
             plt.plot(np.arange(dim), D[idx, :], linestyle='--')
-        plt.title('Constructed Warping Path')
+        plt.title('构建的扭曲路径')
     return res
 
 def param_to_warppath(t, M):
     """
-    Convert a parameterization function into a valid warping path
-    
-    Parameters
+    将参数化函数转换为有效的变形路径
+
+    参数
     ----------
     t: ndarray(N)
-        Samples along the parameterization function on the
-        unit interval
+        单位区间上参数化函数的样本
     M: int
-        The number of samples in the original time series
+        原始时间序列中的样本数量
     
-    Returns
+    返回
     -------
     P: ndarray(K, 2)
-        A warping path that best matches the parameterization
+        最符合参数化的变形路径
     """
     N = len(t)
     P = np.zeros((N, 2), dtype=int)

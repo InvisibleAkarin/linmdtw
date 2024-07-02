@@ -18,7 +18,7 @@ float c_dtw(float* X, float* Y, int* P, int M, int N, int d, int debug, float* U
     }
     for (int i = 0; i < M; i++) {
         for (int j = 0; j < N; j++) {
-            // Step 1: Compute the Euclidean distance
+            // 步骤 1: 计算欧几里得距离
             dist = 0.0;
             for (int k = 0; k < d; k++) {
                 double diff = (X[i*d + k] - Y[j*d + k]);
@@ -26,7 +26,7 @@ float c_dtw(float* X, float* Y, int* P, int M, int N, int d, int debug, float* U
             }
             dist = sqrt(dist);
 
-            // Step 2: Do dynamic progamming step
+            // 步骤 2: 执行动态规划步骤
             float score = -1;
             if (i == 0 && j == 0) {
                 score = 0;
@@ -37,17 +37,17 @@ float c_dtw(float* X, float* Y, int* P, int M, int N, int d, int debug, float* U
                 }
             }
             else {
-                // Left
+                // 左侧
                 float left = -1;
                 if (j > 0) {
                     left = S[i*N + (j-1)];
                 }
-                // Up
+                // 上方
                 float up = -1;
                 if (i > 0) {
                     up = S[(i-1)*N+j];
                 }
-                // Diag
+                // 对角线
                 float diag = -1;
                 if (i > 0 && j > 0) {
                     diag = S[(i-1)*N + (j-1)];
@@ -79,17 +79,17 @@ float c_dtw(float* X, float* Y, int* P, int M, int N, int d, int debug, float* U
 }
 
 void c_diag_step(float* d0, float* d1, float* d2, float* csm0, float* csm1, float* csm2, float* X, float* Y, int dim, int diagLen, int* box, int reverse, int i, int debug, float* U, float* L, float* UL, float* S) {
-    //Other local variables
-    int i1, i2, j1, j2; // Endpoints of the diagonal
-    int thisi, thisj; // Current indices on the diagonal
-    // Optimal score and particular score for up/right/left
+    // 其他局部变量
+    int i1, i2, j1, j2; // 对角线的端点
+    int thisi, thisj; // 对角线上的当前索引
+    // 上/右/左的最优得分和特定得分
     float score, left, up, diag;
     int xi, yj;
 
-    //Process each diagonal
+    // 处理每个对角线
     for (int idx = 0; idx < diagLen; idx++) {
         score = -1;
-        // Figure out indices in X and Y on diagonal
+        // 计算对角线上的 X 和 Y 的索引
         int M = box[1] - box[0] + 1;
         int N = box[3] - box[2] + 1;
         i1 = i;
@@ -116,7 +116,7 @@ void c_diag_step(float* d0, float* d1, float* d2, float* csm0, float* csm1, floa
             }
             xi += box[0];
             yj += box[2];
-            // Step 1: Update csm2
+            // 步骤 1: 更新 csm2
             csm2[idx] = 0.0;
             for (int d = 0; d < dim; d++) {
                 float diff = X[xi*dim+d] - Y[yj*dim+d];
@@ -125,7 +125,7 @@ void c_diag_step(float* d0, float* d1, float* d2, float* csm0, float* csm1, floa
             csm2[idx] = sqrt(csm2[idx]);
             
 
-            // Step 2: Figure out the optimal cost
+            // 步骤 2: 计算最优代价
             if (thisi == 0 && thisj == 0) {
                 score = 0;
                 if (debug == -1) {
