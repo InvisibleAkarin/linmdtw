@@ -14,9 +14,9 @@ class TestDTW:
     def test_input_type_warning(self):
         np.random.seed(0)
         X = np.random.rand(10, 3)
-        with pytest.warns(UserWarning, match="is not 32-bit, so creating 32-bit version") as w:
+        with pytest.warns(UserWarning, match="不是 32 位的，因此创建 32 位版本") as w:
             linmdtw.linmdtw(X, X)
-        with pytest.warns(UserWarning, match="is not 32-bit, so creating 32-bit version") as w:
+        with pytest.warns(UserWarning, match="不是 32 位的，因此创建 32 位版本") as w:
             linmdtw.dtw_brute_backtrace(X, X)
 
     def test_dimension_warning(self):
