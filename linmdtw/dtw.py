@@ -274,7 +274,7 @@ def linmdtw(X, Y, box=None, min_dim=500, do_gpu=True, metadata=None):
             init_gpu()
         from .dtwgpu import DTW_GPU_Failed
         if DTW_GPU_Failed:
-            warnings.warn("Falling back to CPU")
+            warnings.warn("回退到 CPU")
             do_gpu = False
         else:
             dtw_diag_fn = dtw_diag_gpu
