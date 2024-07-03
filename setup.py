@@ -53,24 +53,24 @@ if platform.system() == "Darwin":
         "-mmacosx-version-min=10.9"
     ])
 
-ext_modules = Extension(
-    "dynseqalign",
-    sources=["linmdtw/dynseqalign.pyx"],
-    define_macros=[
-    ],
-    extra_compile_args=extra_compile_args,
-    extra_link_args=extra_link_args,
-    language="c++"
-)
 # ext_modules = Extension(
-#     "linmdtwPy2Cpp",
-#     sources=["linmdtw/linmdtwPy2Cpp.pyx"],
+#     "dynseqalign",
+#     sources=["linmdtw/dynseqalign.pyx"],
 #     define_macros=[
 #     ],
 #     extra_compile_args=extra_compile_args,
 #     extra_link_args=extra_link_args,
 #     language="c++"
 # )
+ext_modules = Extension(
+    "linmdtwPy2Cpp",
+    sources=["linmdtw/linmdtwPy2Cpp.pyx"],
+    define_macros=[
+    ],
+    extra_compile_args=extra_compile_args,
+    extra_link_args=extra_link_args,
+    language="c++"
+)
 
 
 setup(
