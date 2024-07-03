@@ -10,6 +10,7 @@ import os
 import glob
 import traceback
 # import youtube_dl
+from linmdtwPy2Cpp import c_linmdtw
 from scipy.spatial.distance import euclidean
 
 def my_hook(d):
@@ -129,7 +130,7 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
         tic = time.time()
         metadata = {'totalCells':0, 'M':X1.shape[0], 'N':X2.shape[0], 'timeStart':tic}
         print("开始 GPU 对齐...")
-        path_gpu = linmdtw.linmdtw(X1, X2, do_gpu=True, metadata=metadata)
+        path_gpu = c_linmdtw(X1, X2, do_gpu=True, metadata=metadata)
         metadata['time_gpu'] = time.time() - metadata['timeStart']
         print("GPU 时间", metadata['time_gpu'])
         # print(path_gpu)
