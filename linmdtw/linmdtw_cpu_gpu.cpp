@@ -155,6 +155,25 @@ void DTW_Diag_Step(vector<float>& d0, vector<float>& d1, vector<float>& d2, vect
     c_diag_step(d0.data(), d1.data(), d2.data(), csm0.data(), csm1.data(), csm2.data(), const_cast<float*>(X[0].data()), const_cast<float*>(Y[0].data()), dim, diagLen, const_cast<int*>(box.data()), reverse, i, debug, U[0].data(), L[0].data(), UL[0].data(), S[0].data());
 }
 
+// 包装函数，用于统一 dtw_diag 和 dtw_diag_gpu 的返回类型
+DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata) {
+    map<string, vector<float>> gpu_result = dtw_diag_gpu(X, Y, k_save, k_stop, box, reverse, debug, metadata);
+    DTWDiagResult result;
+    result.cost = gpu_result["cost"][0];
+    if (debug) {
+        result.U = {gpu_result["U"]};
+        result.L = {gpu_result["L"]};
+        result.UL = {gpu_result["UL"]};
+        result.S = {gpu_result["S"]};
+    }
+    result.d0 = gpu_result["d0"];
+    result.d1 = gpu_result["d1"];
+    result.d2 = gpu_result["d2"];
+    result.csm0 = gpu_result["csm0"];
+    result.csm1 = gpu_result["csm1"];
+    result.csm2 = gpu_result["csm2"];
+    return result;
+}
 
 /**
  * 对应 dtw.py中的同名函数
@@ -340,7 +359,7 @@ DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int
             cerr << "Falling back to CPU" << endl;
             do_gpu = false;
         } else {
-            dtw_diag_fn = dtw_diag_gpu;
+            dtw_diag_fn = wrap_dtw_diag_gpu;
         }
     }
 
