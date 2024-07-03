@@ -131,9 +131,9 @@ def plot_err_distributions(short = True):
             print([name])
             print((X[:, k]**p).tolist())
     plt.figure(figsize=(6, 4))
-    # 设置 matplotlib 使用支持中文的字体
-    matplotlib.rcParams['font.family'] = 'SimHei'
-    matplotlib.rcParams['axes.unicode_minus'] = False  # 正确显示负号
+    # # 设置 matplotlib 使用支持中文的字体
+    # matplotlib.rcParams['font.family'] = 'SimHei'
+    # matplotlib.rcParams['axes.unicode_minus'] = False  # 正确显示负号
     palette = sns.color_palette("cubehelix", len(times))
     # 横轴：DTW 类型；纵轴：误差容限内的比例；颜色：误差（秒）
     df = pd.DataFrame({"DTW 类型":approxtype, "误差（秒）":cdfthresh, "误差容限内的比例":cdf})
@@ -192,7 +192,8 @@ def draw_systolic_array():
 def get_length_distributions():
     fac = 0.8
     plt.figure(figsize=(fac*12, fac*3))
-    for k, s in enumerate(["Short", "Long"]):
+    # for k, s in enumerate(["Short", "Long"]):
+    for k, s in enumerate(["Short"]):
         plt.subplot(1, 2, k+1)
         foldername = "OrchestralPieces/{}".format(s)
         infofile = "{}/info.json".format(foldername)
@@ -201,6 +202,8 @@ def get_length_distributions():
         hop_length = 43
         lengths = []
         for i in range(N):
+            if not ( os.path.exists("{}/{}_0.mp3_chroma_path.mat".format(foldername, i)) ):
+                continue
             res = json.load(open("{}/{}_0.mp3_chroma_stats.json".format(foldername, i), "r"))
             M = res['M']
             N = res['N']
@@ -223,6 +226,8 @@ def get_cell_usage_distributions():
         N = len(pieces)
         for f in ["chroma", "mfcc"]:
             for i in range(N):
+                if not ( os.path.exists("{}/{}_0.mp3_chroma_path.mat".format(foldername, i)) ):
+                    continue
                 res = json.load(open("{}/{}_0.mp3_{}_stats.json".format(foldername, i, f), "r"))
                 denom = res['M']*res['N']
                 total = res['totalCells']
@@ -248,6 +253,8 @@ def get_memory_table():
         hop_length = 43
         lengths = []
         for i in range(N):
+            if not ( os.path.exists("{}/{}_0.mp3_chroma_path.mat".format(foldername, i)) ):
+                continue
             res = json.load(open("{}/{}_0.mp3_chroma_stats.json".format(foldername, i), "r"))
             M = res['M']
             N = res['N']
@@ -262,9 +269,14 @@ def get_memory_table():
             print("Ours: ", min(M, N)*4*3/(1024**2), "MB")
             print("FastDTW: ", 4*min(M, N)*(4*delta+5)/(1024**2), "MB" )
 
-plot_err_distributions(short=True)
+
+
+# 设置 matplotlib 使用支持中文的字体
+matplotlib.rcParams['font.family'] = 'SimHei'
+matplotlib.rcParams['axes.unicode_minus'] = False  # 正确显示负号
+# plot_err_distributions(short=True)
 # plot_err_distributions(short=False)
-# draw_systolic_array()
+draw_systolic_array()
 # get_length_distributions()
 # get_cell_usage_distributions()
 # get_memory_table()
