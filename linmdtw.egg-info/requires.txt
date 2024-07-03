@@ -1,0 +1,13 @@
+Cython
+numpy
+matplotlib
+scipy
+numba
+
+[docs]
+linmdtw_docs_config
+
+[examples]
+
+[testing]
+pytest

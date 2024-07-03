@@ -4,7 +4,9 @@ import numpy as np
 import json
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib
 import seaborn as sns
+import os
 
 def get_cdf(mat, times):
     cdf = np.zeros(len(times))
@@ -36,19 +38,21 @@ def plot_err_distributions(short = True):
     XChromaMFCC = np.zeros((N, len(times)))
 
     for i in range(N):
+        if not ( os.path.exists("{}/{}_0.mp3_chroma_path.mat".format(foldername, i)) ):
+            continue
         res = sio.loadmat("{}/{}_0.mp3_chroma_path.mat".format(foldername, i))
         chroma_path_gpu = res['path_gpu']
         if short:
             chroma_path_cpu = res['path_cpu']
 
-        if short:
-            chroma_path_cpu64_diag = sio.loadmat("{}/{}_0.mp3_chroma_cpudiag_path.mat".format(foldername, i))['path_cpu']
-            chroma_path_cpu64_left = sio.loadmat("{}/{}_0.mp3_chroma_path.mat".format(foldername, i))['path_cpu']
-            d = distfn(chroma_path_cpu64_diag, chroma_path_cpu64_left)
-            mfcc_path_cpu64_diag = sio.loadmat("{}/{}_0.mp3_mfcc_cpudiag_path.mat".format(foldername, i))['path_cpu']
-            mfcc_path_cpu64_left = sio.loadmat("{}/{}_0.mp3_mfcc_path.mat".format(foldername, i))['path_cpu']
-            d = np.concatenate((d, distfn(mfcc_path_cpu64_diag, mfcc_path_cpu64_left)))
-            XCPUCPU[i, :] = get_cdf(d, times)
+        # if short:
+        #     chroma_path_cpu64_diag = sio.loadmat("{}/{}_0.mp3_chroma_cpudiag_path.mat".format(foldername, i))['path_cpu']
+        #     chroma_path_cpu64_left = sio.loadmat("{}/{}_0.mp3_chroma_path.mat".format(foldername, i))['path_cpu']
+        #     d = distfn(chroma_path_cpu64_diag, chroma_path_cpu64_left)
+        #     mfcc_path_cpu64_diag = sio.loadmat("{}/{}_0.mp3_mfcc_cpudiag_path.mat".format(foldername, i))['path_cpu']
+        #     mfcc_path_cpu64_left = sio.loadmat("{}/{}_0.mp3_mfcc_path.mat".format(foldername, i))['path_cpu']
+        #     d = np.concatenate((d, distfn(mfcc_path_cpu64_diag, mfcc_path_cpu64_left)))
+        #     XCPUCPU[i, :] = get_cdf(d, times)
 
 
         res = sio.loadmat("{}/{}_0.mp3_mfcc_path.mat".format(foldername, i))
@@ -74,22 +78,44 @@ def plot_err_distributions(short = True):
 
         XChromaMFCC[i, :] = get_cdf(distfn(chroma_path_gpu, mfcc_path_gpu), times)
     
+    for i in range(N-1, -1, -1):
+        if not ( os.path.exists("{}/{}_0.mp3_chroma_path.mat".format(foldername, i)) ):
+            # 删除对应行
+            XCPUCPU = np.delete(XCPUCPU, i, axis=0)
+            XGPUCPU = np.delete(XGPUCPU, i, axis=0)
+            XChromaFastDTW = np.delete(XChromaFastDTW, i, axis=0)
+            for k in range(len(tauexp)):
+                XChromaMRMSDTW[k] = np.delete(XChromaMRMSDTW[k], i, axis=0)
+            XMFCCFastDTW = np.delete(XMFCCFastDTW, i, axis=0)
+            for k in range(len(tauexp)):
+                XMFCCMRMSDTW[k] = np.delete(XMFCCMRMSDTW[k], i, axis=0)
+            XChromaMFCC = np.delete(XChromaMFCC, i, axis=0)
+
     times = times/hop_size
     names = ["DLNC0\nFastDTW"] + ["DLNC0\nMRMSDTW\n$10^%i$"%exp for exp in tauexp] + ["mfcc-mod\nFastDTW"] + ["mfcc-mod\nMRMSDTW\n$10^%i$"%exp for exp in tauexp] + ["DLNC0\nvs\nmfcc-mod"]
     results = [XChromaFastDTW] + XChromaMRMSDTW + [XMFCCFastDTW] + XMFCCMRMSDTW + [XChromaMFCC]
     if short:
-        names = ["CPU vs CPU\n64-bit", "GPU vs CPU\n32-bit"] + names
-        results = [XCPUCPU, XGPUCPU] + results
+        # names = ["CPU vs CPU\n64-bit", "GPU vs CPU\n32-bit"] + names
+        names = ["GPU vs CPU\n32-bit"] + names
+        # results = [XCPUCPU, XGPUCPU] + results
+        results = [XGPUCPU] + results
     p = 1
     approxtype = []
     cdfthresh = []
     cdf = []
     for name, X in zip(names, results):
+        print(name)
+        print(X)
         for k, t in enumerate(times):
             approxtype += [name]*X.shape[0]
             cdfthresh += ["<= %.2g"%(times[k])]*X.shape[0]
             cdf += (X[:, k]**p).tolist()
+            print([name])
+            print((X[:, k]**p).tolist())
     plt.figure(figsize=(6, 4))
+    # 设置 matplotlib 使用支持中文的字体
+    matplotlib.rcParams['font.family'] = 'SimHei'
+    matplotlib.rcParams['axes.unicode_minus'] = False  # 正确显示负号
     palette = sns.color_palette("cubehelix", len(times))
     df = pd.DataFrame({"DTW 类型":approxtype, "误差（秒）":cdfthresh, "误差容限内的比例":cdf})
     ax = plt.gca()
@@ -216,8 +242,8 @@ def get_memory_table():
             print("FastDTW: ", 4*min(M, N)*(4*delta+5)/(1024**2), "MB" )
 
 plot_err_distributions(short=True)
-plot_err_distributions(short=False)
-#draw_systolic_array()
-#get_length_distributions()
-#get_cell_usage_distributions()
-#get_memory_table()
+# plot_err_distributions(short=False)
+# draw_systolic_array()
+# get_length_distributions()
+# get_cell_usage_distributions()
+# get_memory_table()

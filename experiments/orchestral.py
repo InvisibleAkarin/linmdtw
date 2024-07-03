@@ -8,7 +8,8 @@ import json
 import subprocess
 import os
 import glob
-import youtube_dl
+import traceback
+# import youtube_dl
 from scipy.spatial.distance import euclidean
 
 def my_hook(d):
@@ -96,10 +97,10 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
         如果为真，根据 fastdtw 和 mrmsdtw 的近似扭曲路径拉伸音频
     """
     if not os.path.exists(filename1):
-        warnings.warn("跳过 ", filename1)
+        warnings.warn("跳过 "+ filename1)
         return
     if not os.path.exists(filename2):
-        warnings.warn("跳过 ", filename2)
+        warnings.warn("跳过 "+ filename2)
         return
     prefix = "mfcc"
     if not do_mfcc:
@@ -131,7 +132,8 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
         path_gpu = linmdtw.linmdtw(X1, X2, do_gpu=True, metadata=metadata)
         metadata['time_gpu'] = time.time() - metadata['timeStart']
         print("GPU 时间", metadata['time_gpu'])
-        path_gpu = np.array(path_gpu)
+        # print(path_gpu)
+        path_gpu = np.array(path_gpu[1])
         paths = {"path_gpu":path_gpu}
         if compare_cpu:
             tic = time.time()
@@ -140,7 +142,7 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
             elapsed = time.time() - tic
             print("CPU 时间", elapsed)
             metadata["time_cpu"] = elapsed
-            path_cpu = np.array(path_cpu)
+            path_cpu = np.array(path_cpu[1])
             paths["path_cpu"] = path_cpu
 
         for f in ['totalCells', 'M', 'N']:
@@ -167,7 +169,7 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
         path_fastdtw = linmdtw.fastdtw(X1, X2, radius = delta)
         elapsed = time.time()-tic
         print("fastdtw 耗时", elapsed)
-        path_fastdtw = np.array([[p[0], p[1]] for p in path_fastdtw])
+        path_fastdtw = np.array([[p[0], p[1]] for p in path_fastdtw[1]])
         res = {"path_fastdtw":path_fastdtw, "elapsed_fastdtw":elapsed}
         if do_stretch_approx:
             x = linmdtw.stretch_audio(x1, x2, sr, path_fastdtw, hop_length)
@@ -179,8 +181,9 @@ def align_pieces(filename1, filename2, sr, hop_length, do_mfcc, compare_cpu, do_
             path = linmdtw.mrmsdtw(X1, X2, 10**tauexp)
             elapsed = time.time()-tic
             print("mrmsdtw 10^%i 耗时: %.3g"%(tauexp, elapsed))
-            res['path_mrmsdtw%i'%tauexp] = path
+            res['path_mrmsdtw%i'%tauexp] = path[1]
             res['elapsed_mrmsdtw%i'%tauexp] = elapsed
+        # print("res ",res)
         sio.savemat(approx_pathfilename, res)
 
 
@@ -204,16 +207,17 @@ def align_corpus(foldername, compare_cpu, do_stretch):
     pieces = json.load(open(infofile, "r"))
     for do_mfcc in [False, True]:
         for i, pair in enumerate(pieces):
-            try:
+            # try:
                 filename1 = "{}/{}_0.mp3".format(foldername, i)
                 filename2 = "{}/{}_1.mp3".format(foldername, i)
                 print("正在对齐 ", filename1, filename2)
                 align_pieces(filename1, filename2, sr, hop_length, do_mfcc=do_mfcc, compare_cpu=compare_cpu, do_stretch=do_stretch)
-            except:
-                print("错误")
+            # except Exception as e:
+                # print("发生错误：", e)
+                # traceback.print_exc()  # 打印错误的 traceback
 
 if __name__ == '__main__':
-    download_corpus("OrchestralPieces/Short")
-    align_corpus("OrchestralPieces/Short", compare_cpu=True, do_stretch=True)
-    download_corpus("OrchestralPieces/Long")
-    align_corpus("OrchestralPieces/Long", compare_cpu=False, do_stretch=False)
+    # download_corpus("OrchestralPieces/Short")
+    align_corpus("OrchestralPieces/Short", compare_cpu=True, do_stretch=False)
+    # download_corpus("OrchestralPieces/Long")
+    # align_corpus("OrchestralPieces/Long", compare_cpu=False, do_stretch=False)
