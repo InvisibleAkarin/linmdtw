@@ -4,7 +4,9 @@ import platform
 
 from setuptools import setup
 from setuptools.extension import Extension
-
+# from setuptools import setup, Extension
+import numpy
+# import os
 # 确保在尝试安装 linmdtw 之前已安装 Cython
 try:
     from Cython.Build import cythonize
@@ -62,14 +64,27 @@ if platform.system() == "Darwin":
 #     extra_link_args=extra_link_args,
 #     language="c++"
 # )
+CUDA_HOME = '/usr/local/cuda'
+
+# 获取CUDA库和头文件的路径
+CUDA_LIB_DIRS = [os.path.join(CUDA_HOME, 'lib64')]
+CUDA_INCLUDE_DIRS = [os.path.join(CUDA_HOME, 'include')]
+
 ext_modules = Extension(
-    "linmdtwPy2Cpp",
-    sources=["linmdtw/linmdtwPy2Cpp.pyx"],
-    define_macros=[
+    'linmdtwPy2Cpp',  # 你的模块名
+    sources=['linmdtw/linmdtwPy2Cpp.pyx'],  # 你的源文件列表
+    include_dirs=[
+        numpy.get_include(),
+        CUDA_INCLUDE_DIRS,  # 添加CUDA头文件路径
+        # 其他需要的头文件路径
     ],
-    extra_compile_args=extra_compile_args,
-    extra_link_args=extra_link_args,
-    language="c++"
+    library_dirs=CUDA_LIB_DIRS,  # 添加CUDA库文件路径
+    libraries=[
+        'cudart',  # CUDA运行时库
+        # 其他需要链接的库
+    ],
+    language='c++',
+    extra_compile_args=['-std=c++11'],  # 根据需要添加其他编译参数
 )
 
 

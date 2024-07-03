@@ -2,6 +2,8 @@
 
 cimport linmdtwPy2Cpp
 import cython
+import numpy
+cimport numpy
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
