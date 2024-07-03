@@ -65,6 +65,7 @@ DTWResult dtw_brute_backtrace(const std::vector<std::vector<float>>& X, const st
 DTWBruteResult DTW(const std::vector<std::vector<float>>& X, const std::vector<std::vector<float>>& Y, int debug);
 DTWResult linmdtw(const std::vector<std::vector<float>>& X, const std::vector<std::vector<float>>& Y, 
                   const std::vector<int>& box, int min_dim, bool do_gpu, const std::vector<int>& metadata);
+DTWDiagResult dtw_diag(const vector<vector<float>>& X, const vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata) {
 
 
 int get_diag_len(const std::vector<int>& box, int k);
