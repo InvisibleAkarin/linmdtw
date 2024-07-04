@@ -73,9 +73,10 @@ CUDA_INCLUDE_DIRS = [os.path.join(CUDA_HOME, 'include')]
 ext_modules = Extension(
     'linmdtwPy2Cpp',  # 你的模块名
     sources=['linmdtw/linmdtwPy2Cpp.pyx'],  # 你的源文件列表
+    depends=['linmdtw/linmdtw.h'],
     include_dirs=[
         numpy.get_include(),
-        CUDA_INCLUDE_DIRS,  # 添加CUDA头文件路径
+        *CUDA_INCLUDE_DIRS,  # 添加CUDA头文件路径
         # 其他需要的头文件路径
     ],
     library_dirs=CUDA_LIB_DIRS,  # 添加CUDA库文件路径
@@ -98,7 +99,7 @@ setup(
     author_email="ctralie@alumni.princeton.edu",
     license='Apache2',
     packages=['linmdtw'],
-    ext_modules=cythonize(ext_modules, include_path=['linmdtw']),
+    ext_modules=cythonize(ext_modules, include_path=['linmdtwPy2Cpp']),
     install_requires=[
         'Cython',
         'numpy',

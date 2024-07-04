@@ -19,7 +19,8 @@
 using namespace std;
 using namespace std::chrono;
 
-
+bool DTW_GPU_Initialized = false;
+bool DTW_GPU_Failed = false;
 void init_gpu();
-map<string, vector<float>> dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save = -1, int k_stop = -1, vector<int> box = {}, bool reverse = false, bool debug = false, std::map<std::string, long double>* metadata = nullptr);
+map<string, vector<float>> dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save = -1, int k_stop = -1, vector<int> box = {}, bool reverse = false, bool debug = false, std::map<std::string,double>* metadata = nullptr);
 #endif // DTW_DIAG_GPU_H

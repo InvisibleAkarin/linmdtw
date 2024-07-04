@@ -1,15 +1,23 @@
 # distutils: language = c++
 
-cimport linmdtwPy2Cpp
-cimport cnp
+#cimport linmdtwPy2Cpp
 import cython
 # distutils: language = c++
 from libcpp.vector cimport vector
 import numpy as np
 cimport numpy as cnp
 from libcpp.map cimport map
+from libcpp.pair cimport pair
 from libcpp.string cimport string
+from libcpp.vector cimport vector
+from libcpp.pair cimport pair
+from libcpp cimport bool
+from cython.operator cimport dereference as deref, preincrement as inc
 
+
+ctypedef vector[float] VectorFloat
+ctypedef vector[VectorFloat] VectorVectorFloat
+ctypedef map[string, double] StringToDoubleMap
 
 
 cdef extern from "linmdtw.cpp":
@@ -18,14 +26,8 @@ cdef extern from "linmdtw.cpp":
         vector[pair[int, int]] path
 
     # 声明linmdtw函数，它返回一个DTWResult对象
-    DTWResult linmdtw(const vector[vector[float]]& X, const vector[vector[float]]& Y, const vector[int]& box, int min_dim, bool do_gpu, const vector[int]& metadata)
+    DTWResult linmdtw(VectorVectorFloat& X, VectorVectorFloat& Y, vector[int]& box, int min_dim, bool do_gpu, StringToDoubleMap* metadata)
 
-
-def convert_dtw_result_to_py(DTWResult result):
-    # 将 C++ vector 转换为 Python 列表
-    path_py = [(p.first, p.second) for p in result.path]
-    # 创建并返回一个包含结果的元组
-    return (result.cost, path_py)
 
 cdef vector[vector[float]] numpy_to_vector_vector_float(cnp.ndarray[cnp.float32_t, ndim=2] arr):
     cdef:
@@ -47,32 +49,44 @@ cdef vector[int] numpy_to_vector_int(cnp.ndarray[cnp.int32_t, ndim=1] arr):
         vec.push_back(arr[i])
     return vec
 
-cdef map[string, long double] dict_to_map(dict py_dict):
+cdef map[string, double] dict_to_map(dict py_dict):
     cdef:
-        map[string, long double] cpp_map = map[string, long double]()
+        map[string, double] cpp_map = map[string, double]()
         string key
-        long double value
+        double value
     for py_key, py_value in py_dict.items():
         key = py_key.encode('utf-8')
         value = py_value
         cpp_map[key] = value
     return cpp_map
 
-cdef dict map_to_dict(const map[string, long double]& cpp_map):
+cdef dict map_to_dict(const map[string, double]& cpp_map):
     cdef:
         dict py_dict = {}
+        map[string, double].iterator it = cpp_map.begin()
         string key
-        long double value
-    for key, value in cpp_map.items():
-        py_dict[key.decode('utf-8')] = value
+        double value
+    while it != cpp_map.end():
+        key = deref(it).first.decode('utf-8')  # 使用 it.first 访问键，并解码为 UTF-8 字符串
+        value = deref(it).second  # 使用 it.second 访问值
+        py_dict[key] = value
+        # 使用 ++it 来增加迭代器
+        # 注意：这里的实现方式可能需要根据你的 Cython 环境进行调整
+        inc(it)
     return py_dict
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-def c_linmdtw(numpy.ndarray[float,ndim=2,mode="c"] X not None, numpy.ndarray[float,ndim=2,mode="c"] Y not None, bint do_gpu, dict metadata):
-    vector[vector[float]] X_vec = numpy_to_vector_vector_float(X)
-    vector[vector[float]] Y_vec = numpy_to_vector_vector_float(Y)
-    vector[int] box_vec = vector[int]()
-    map[string, long double] metadata_map = dict_to_map(metadata)
+
+
+#@cython.boundscheck(False)
+#@cython.wraparound(False)
+def c_linmdtw(cnp.ndarray[float,ndim=2,mode="c"] X not None, cnp.ndarray[float,ndim=2,mode="c"] Y not None, bint do_gpu, dict metadata):
+    cdef: 
+        vector[vector[float]] X_vec = numpy_to_vector_vector_float(X)
+        vector[vector[float]] Y_vec = numpy_to_vector_vector_float(Y)
+        vector[int] box_vec = vector[int]()
+        map[string, double] metadata_map = dict_to_map(metadata)
     cdef DTWResult result = linmdtw(X_vec, Y_vec, box_vec, 500, do_gpu, &metadata_map)
-    return convert_dtw_result_to_py(result)
+    metadata = map_to_dict(metadata_map)
+    path_py = [(p.first, p.second) for p in result.path]
+    cost = result.cost
+    return (cost,path_py)

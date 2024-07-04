@@ -63,7 +63,7 @@ pair<vector<int>, vector<int>> get_diag_indices(int MTotal, int NTotal, int k, c
 
     return make_pair(i, j);
 }
-void update_alignment_metadata(std::map<std::string, long double>& metadata, int newcells) {
+void update_alignment_metadata(std::map<std::string, double>& metadata, int newcells) {
     if (metadata.find("M") != metadata.end() && metadata.find("N") != metadata.end() && metadata.find("totalCells") != metadata.end()) {
         int M = metadata["M"];
         int N = metadata["N"];

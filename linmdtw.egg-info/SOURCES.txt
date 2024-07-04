@@ -15,6 +15,7 @@ linmdtw/dtwgpu.py
 linmdtw/dynseqalign.cpp
 linmdtw/dynseqalign.pxd
 linmdtw/dynseqalign.pyx
+linmdtw/linmdtwPy2Cpp.cpp
 linmdtw.egg-info/PKG-INFO
 linmdtw.egg-info/SOURCES.txt
 linmdtw.egg-info/dependency_links.txt

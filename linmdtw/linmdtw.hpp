@@ -3,6 +3,9 @@
 
 
 
+#include "dtw_diag_gpu.h"
+#include "alignmenttools.h"
+#include "dtw.cpp"
 #include <iostream>
 #include <algorithm>
 #include <cmath>
@@ -61,10 +64,10 @@ struct DTWResult {
 DTWResult dtw_brute_backtrace(const vector<vector<float>>& X, const vector<vector<float>>& Y, bool debug);
 DTWBruteResult DTW(const vector<vector<float>>& X, const vector<vector<float>>& Y, int debug);
 void DTW_Diag_Step(vector<float>& d0, vector<float>& d1, vector<float>& d2, vector<float>& csm0, vector<float>& csm1, vector<float>& csm2, const vector<vector<float>>& X, const vector<vector<float>>& Y, int diagLen, const vector<int>& box, int reverse, int i, int debug, vector<vector<float>>& U, vector<vector<float>>& L, vector<vector<float>>& UL, vector<vector<float>>& S);
-DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata);
-DTWDiagResult dtw_diag(const vector<vector<float>>& X, const vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata);
+DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, double>* metadata);
+DTWDiagResult dtw_diag(const vector<vector<float>>& X, const vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, double>* metadata);
 void check_euclidean_inputs(const std::vector<std::vector<float>>& X, const std::vector<std::vector<float>>& Y);
 void update_min_cost(const vector<float>& dleft, const vector<float>& dright, const vector<float>& csmright, float& min_cost, vector<int>& min_idxs, int k, const vector<int>& box, const vector<vector<float>>& X, const vector<vector<float>>& Y);
-DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int> box, int min_dim, bool do_gpu, std::map<std::string, long double>* metadata);
+DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int> box, int min_dim, bool do_gpu, std::map<std::string, double>* metadata);
 
 #endif // LINMDTW_H

@@ -36,7 +36,7 @@
  * 调用DWT（修改后）：使用bf方法计算dtw
  * 被linmdtw所调用
  */
-DTWResult dtw_brute_backtrace(const vector<vector<float>>& X, const vector<vector<float>>& Y, bool debug) {
+DTWResult dtw_brute_backtrace(const vector<vector<float>>& X, const vector<vector<float>>& Y, bool debug =false) {
     // 先执行bf法计算dtw dp
     DTWBruteResult res = DTW(X, Y, debug);
 
@@ -105,12 +105,12 @@ DTWBruteResult DTW(const vector<vector<float>>& X, const vector<vector<float>>& 
     // 再将 1d 的数组重新整理回 2d
     for (int i = 0; i < M; ++i) {
         for (int j = 0; j < N; ++j) {
-            P[i][j] = P_flat[i * N + j];
-            S[i][j] = S_flat[i * N + j];
+            P[i][j] = P1d[i * N + j];
+            S[i][j] = S1d[i * N + j];
             if (debug == 1) {
-                U[i][j] = U_flat[i * N + j];
-                L[i][j] = L_flat[i * N + j];
-                UL[i][j] = UL_flat[i * N + j];
+                U[i][j] = U1d[i * N + j];
+                L[i][j] = L1d[i * N + j];
+                UL[i][j] = UL1d[i * N + j];
             }
         }
     }
@@ -156,7 +156,7 @@ void DTW_Diag_Step(vector<float>& d0, vector<float>& d1, vector<float>& d2, vect
 }
 
 // 包装函数，用于统一 dtw_diag 和 dtw_diag_gpu 的返回类型
-DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata) {
+DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, double>* metadata) {
     map<string, vector<float>> gpu_result = dtw_diag_gpu(X, Y, k_save, k_stop, box, reverse, debug, metadata);
     DTWDiagResult result;
     result.cost = gpu_result["cost"][0];
@@ -194,7 +194,7 @@ DTWDiagResult wrap_dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>&
             如果选择了保存索引，则保存的交叉相似度距离
     }
  */
-DTWDiagResult dtw_diag(const vector<vector<float>>& X, const vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, long double>* metadata) {
+DTWDiagResult dtw_diag(const vector<vector<float>>& X, const vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug, std::map<std::string, double>* metadata) {
     //box: 一个 [startx, endx, starty, endy] 的列表
     if (box.empty()) {
         box = {0, static_cast<int>(X.size()) - 1, 0, static_cast<int>(Y.size()) - 1};
@@ -346,11 +346,11 @@ void update_min_cost(const vector<float>& dleft, const vector<float>& dright, co
 /**
  * 通过cython接口，为orchestral所调用，负责cpu和gpu上计算的协调
  */
-DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int> box, int min_dim, bool do_gpu, std::map<std::string, long double>* metadata) {
+DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int> box, int min_dim, bool do_gpu, std::map<std::string, double>* metadata) {
     // 计算 XY欧氏距离 = 对应点间差的平方求和开根号
     check_euclidean_inputs(X, Y);
     // 选择linmdtw计算使用cpu还是gpu
-    function<DTWDiagResult(vector<vector<float>>&, vector<vector<float>>&, int, int, vector<int>, bool, bool, std::map<std::string, long double>*)> dtw_diag_fn = dtw_diag;
+    function<DTWDiagResult(vector<vector<float>>&, vector<vector<float>>&, int, int, vector<int>, bool, bool, std::map<std::string, double>*)> dtw_diag_fn = dtw_diag;
     if (do_gpu) {
         if (!DTW_GPU_Initialized) {
             init_gpu();
@@ -422,7 +422,7 @@ DTWResult linmdtw(vector<vector<float>>& X, vector<vector<float>>& Y, vector<int
     res1.d2.resize(sz);
     res1.csm2.resize(sz);
 
-    sz = get_diag_len(box, k_save_rev - 2);
+    sz = get_diag_len(box, k_save - 2);
     res2.d0.resize(sz);
     res2.csm0.resize(sz);
     sz = get_diag_len(box, k_save - 2+1);

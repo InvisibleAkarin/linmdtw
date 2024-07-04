@@ -21,7 +21,7 @@ void init_gpu() {
 }
 //// GPU版本的DTW对角线计算函数
 
-map<string, vector<float>> dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug,std::map<std::string, long double>* metadata) {
+map<string, vector<float>> dtw_diag_gpu(vector<vector<float>>& X, vector<vector<float>>& Y, int k_save, int k_stop, vector<int> box, bool reverse, bool debug,std::map<std::string,double>* metadata) {
     assert(X[0].size() == Y[0].size());
 
     if (!DTW_GPU_Initialized) {
