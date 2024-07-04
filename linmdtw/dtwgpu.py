@@ -204,7 +204,8 @@ def dtw_diag_gpu(X, Y, k_save = -1, k_stop = -1, box = None, reverse=False, debu
         S = gpuarray.to_gpu(np.zeros(1, dtype=np.float32))
 
     res = {}
-    for k in range(M+N-1):
+    # for k in range(M+N-1):
+    for k in range(k_stop+1):
         DTW_Step_(d0, d1, d2, csm0, csm1, csm2, XGPU, YGPU, np.array(X.shape[1], dtype=np.int32), diagLen, box_gpu, np.array(reverse, dtype=np.int32), np.array(k, dtype=np.int32), np.array(int(debug), dtype=np.int32), U, L, UL, S, block=(int(threadsPerBlock), 1, 1), grid=(gridSize, 1))
         csm2len = get_diag_len(box, k)
         update_alignment_metadata(metadata, csm2len)
